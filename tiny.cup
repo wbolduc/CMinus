@@ -70,48 +70,55 @@ parser code {:
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
 
 terminal IF, ELSE, INT, RETURN, VOID, WHILE;
-terminal ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE, LT, LE, GT, GE, EQ, NE, ASSIGN, SEMICOLON, COMMA, LPAREN, RPAREN, LSQUARE, RSQUARE, LCURL, RCURL;
+terminal ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE, LT, LE, GT, GE, EQ, NE, SEMICOLON, COMMA, LPAREN, RPAREN, LSQUARE, RSQUARE, LCURL, RCURL;
 terminal String ID, NUM;
 terminal ERROR;
 
-non terminal ExpList program, stmt_seq;
-non terminal Exp stmt, if_stmt, repeat_stmt, assign_stmt, read_stmt, write_stmt;
-non terminal Exp exp, simple_exp, term, factor;
+non terminal ExpList program, declaration_list;
+non terminal Exp declaration, var_declaration, type_specifier, fun_declaration, params, params_list, param, compound_stmt, local_declarations, statement_list, statement, expression_stmt, selection_stmt, iteration_stmt, return_stmt, expression, var, simple_expression, relop, additive_expression, addop, term, mulop, factor, call, args, arg_list;
+
+precedence left ELSE;
 
 /* ----------------------------Grammar Section-------------------- */
-
-program             ::= declaration-list
-declaration-list    ::= declaration-list declaration | declaration
-declaration         ::= var-declaration | fun-declaration
-var-declaration     ::= type-specifier ID SEMICOLON
+program             ::= declaration_list;
+declaration_list    ::= declaration_list declaration | declaration;
+declaration         ::= var_declaration | fun_declaration;
+var_declaration     ::= type_specifier ID SEMICOLON
                         |
-                        type-specifier ID LSQUARE NUM RSQUARE SEMICOLON
-type-specifier      ::= INT | VOID
-fun-declarations    ::= type-specifier ID LPAREN params RPAREN compound-stmt
-params              ::= params-list | VOID
-params-list         ::= params-list COMMA param | param
-param               ::= type-specifier ID | type-specifier ID LSQUARE RSQUARE
-compound-stmt       ::= LCURL local-declarations statement-list RCURL
-local-declarations  ::= local-declarations var-declarations | empty     /****what is empty****/
-statement-list      ::= statement-list statement | empty
-statement           ::= expression-stmt | compound-stmt | selection-stmt | iteration-stmt | return-stmt
-expression-stmt     ::= IF LPAREN expression RPAREN statement
+                        type_specifier ID LSQUARE NUM RSQUARE SEMICOLON;
+type_specifier      ::= INT | VOID;
+fun_declaration     ::= type_specifier ID LPAREN params RPAREN compound_stmt;
+params              ::= params_list | VOID;
+params_list         ::= params_list COMMA param | param;
+param               ::= type_specifier ID | type_specifier ID LSQUARE RSQUARE;
+compound_stmt       ::= LCURL local_declarations statement_list RCURL
                         |
-                        IF LPAREN expression RPAREN statement ELSE statement
-iteration-stmt      ::= WHILE LPAREN expression RPAREN statement
-return-stmt         ::= RETURN SEMICOLON | RETURN expression SEMICOLON
-expression          ::= var ASSIGN expression | simple_expression
-var                 ::= ID | ID LSQUARE expression RSQUARE
-simple-expression   ::= additive_expression relop additive-expression | additive-expression
-relop               ::= LE | LT | GT | GE | EQ | NE
-additive-expression ::= additive-expression addop term | term
-addop               ::= PLUS | MINUS
-term                ::= term mulop factor | factor
-mulop               ::= MULTIPLY | DIVIDE
-factor              ::= LPAREN expression RPAREN | var | call | NUM
+                        LCURL statement_list RCURL
+                        |
+                        LCURL RCURL;
+local_declarations  ::= local_declarations var_declaration | var_declaration;
+statement_list      ::= statement_list statement | statement;
+statement           ::= expression_stmt | compound_stmt | selection_stmt | iteration_stmt | return_stmt;
+expression_stmt     ::= expression SEMICOLON | SEMICOLON;
+selection_stmt      ::= IF LPAREN expression RPAREN statement
+                        |
+                        IF LPAREN expression RPAREN statement ELSE statement;
+iteration_stmt      ::= WHILE LPAREN expression RPAREN statement;
+return_stmt         ::= RETURN SEMICOLON | RETURN expression SEMICOLON;
+expression          ::= var ASSIGN expression | simple_expression;
+var                 ::= ID | ID LSQUARE expression RSQUARE;
+simple_expression   ::= additive_expression relop additive_expression | additive_expression;
+relop               ::= LE | LT | GT | GE | EQ | NE;
+additive_expression ::= additive_expression addop term | term;
+addop               ::= PLUS | MINUS;
+term                ::= term mulop factor | factor;
+mulop               ::= MULTIPLY | DIVIDE;
+factor              ::= LPAREN expression RPAREN | var | call | NUM;
 call                ::= ID LPAREN args RPAREN
-args                ::= arg-list | empty
-arg-list            ::= arg-list COMMA expression | expression
+                        |
+                        ID LPAREN RPAREN;
+args                ::= arg_list;
+arg_list            ::= arg_list COMMA expression | expression;
 
 /*
 program	     ::= stmt_seq:s

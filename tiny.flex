@@ -103,13 +103,13 @@ identifier = {letter}+
 ";"                { return symbol(sym.SEMICOLON); }
 ","                { return symbol(sym.COMMA); }
 "("                { return symbol(sym.LPAREN); }
-")"                { return symbol(sym.RAREN); }
+")"                { return symbol(sym.RPAREN); }
 "["                { return symbol(sym.LSQUARE); }
 "]"                { return symbol(sym.RSQUARE); }
 "{"                { return symbol(sym.LCURL); }
 "}"                { return symbol(sym.RCURL); }
 {number}           { return symbol(sym.NUM, yytext()); }
 {identifier}       { return symbol(sym.ID, yytext()); }
-{WhiteSpace}*      { /* skip whitespace */ }
+{WhiteSpace}+      { /* skip whitespace */ }
 "{"[^\}]*"}"       { /* skip comments */ }
 .                  { return symbol(sym.ERROR); }
