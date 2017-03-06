@@ -377,7 +377,9 @@ class CUP$parser$actions {
           case 0: // program ::= declaration_list 
             {
               ExpList RESULT =null;
-
+		
+                          System.out.println("it's good?");
+                        
               CUP$parser$result = parser.getSymbolFactory().newSymbol("program",0, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;

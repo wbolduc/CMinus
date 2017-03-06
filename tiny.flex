@@ -75,6 +75,8 @@ number = {digit}+
 letter = [a-zA-Z]
 identifier = {letter}+
 
+comment = \/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/
+
 %%
 /* ------------------------Lexical Rules Section---------------------- */
 
@@ -111,5 +113,5 @@ identifier = {letter}+
 {number}           { return symbol(sym.NUM, yytext()); }
 {identifier}       { return symbol(sym.ID, yytext()); }
 {WhiteSpace}+      { /* skip whitespace */ }
-"{"[^\}]*"}"       { /* skip comments */ }
+{comment}          { System.out.println("Comment: " + yytext());/* skip comments */ }
 .                  { return symbol(sym.ERROR); }

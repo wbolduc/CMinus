@@ -10,7 +10,7 @@ all: Main.class
 Main.class: absyn/*.java parser.java sym.java Lexer.java Main.java
 
 %.class: %.java
-	$(JAVAC) $(CLASSPATH)  $^
+	$(JAVAC) $(CLASSPATH) $^
 
 Lexer.java: tiny.flex
 	$(JFLEX) tiny.flex
