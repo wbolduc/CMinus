@@ -82,7 +82,7 @@ precedence left ELSE;
 /* ----------------------------Grammar Section-------------------- */
 program             ::= declaration_list
                         {:
-                          System.out.println("it's good?");
+                          System.out.println("it's good!");
                         :};
 declaration_list    ::= declaration_list declaration | declaration;
 declaration         ::= var_declaration | fun_declaration;

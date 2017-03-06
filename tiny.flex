@@ -113,5 +113,5 @@ comment = \/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/
 {number}           { return symbol(sym.NUM, yytext()); }
 {identifier}       { return symbol(sym.ID, yytext()); }
 {WhiteSpace}+      { /* skip whitespace */ }
-{comment}          { System.out.println("Comment: " + yytext());/* skip comments */ }
+{comment}          { /* skip comments */ }
 .                  { return symbol(sym.ERROR); }
