@@ -1,6 +1,6 @@
 package absyn;
 
-public class RelOpp extends Exp {
+public class RelOp extends Exp {
   public final static int LT    = 0;
   public final static int LE    = 1;
   public final static int EQ    = 2;

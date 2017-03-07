@@ -75,10 +75,10 @@ terminal String ID, NUM;
 terminal String INT, VOID;
 terminal ERROR;
 
-non terminal ExpList program, declaration_list, params_list, params, local_declarations, statement_list;
-non terminal Exp declaration, var_declaration, fun_declaration, param, compound_stmt, statement, expression, expression_stmt, selection_stmt, iteration_stmt, return_stmt, var, simple_expression, additive_expression, term, factor, call, args, arg_list;
+non terminal ExpList program, declaration_list, params_list, params, local_declarations, statement_list, arg_list, args;
+non terminal Exp declaration, var_declaration, fun_declaration, param, compound_stmt, statement, expression, expression_stmt, selection_stmt, iteration_stmt, return_stmt, var, simple_expression, additive_expression, term, factor, call;
 non terminal String type_specifier;
-non terminal int relop, addOp, mulop;
+non terminal int relop, addop, mulop;
 
 precedence left ELSE;
 
@@ -218,7 +218,7 @@ iteration_stmt      ::= WHILE:i LPAREN expression:e RPAREN statement:s
                         {: RESULT = new RepeatExp( ileft, e, s ); :};
 
 return_stmt         ::= RETURN:i SEMICOLON
-                        {: RESULT = new RetExp(ileft, NULL); :}
+                        {: RESULT = new RetExp(ileft, null); :}
                         |
                         RETURN:i expression:e SEMICOLON
                         {:  RESULT = new RetExp(ileft, e); :};
@@ -271,7 +271,11 @@ addop               ::= PLUS
                         MINUS
                         {: RESULT = BinOp.MINUS; :};
 
-term                ::= term mulop factor | factor;
+term                ::= term:t mulop:m factor:f
+                        {: RESULT = new BinOp(tleft, t, m, f); :}
+                        |
+                        factor:f
+                        {: RESULT = f; :};
 
 mulop               ::= MULTIPLY
                         {: RESULT = BinOp.MULTIPLY; :}
@@ -279,16 +283,39 @@ mulop               ::= MULTIPLY
                         DIVIDE
                         {: RESULT = BinOp.DIVIDE; :};
 
-factor              ::= LPAREN expression RPAREN
-                        | var
-                        | call
-                        | NUM;
-
-call                ::= ID LPAREN args RPAREN
+factor              ::= LPAREN expression:e RPAREN
+                        {: RESULT = e; :}
                         |
-                        ID LPAREN RPAREN;
-args                ::= arg_list;
-arg_list            ::= arg_list COMMA expression | expression;
+                        var:v
+                        {: RESULT = v; :}
+                        |
+                        call:c
+                        {: RESULT = c; :}
+                        |
+                        NUM:n
+                        {: RESULT = new VarExp(nleft, n); :};
+
+call                ::= ID:i LPAREN args:a RPAREN
+                        {: RESULT = new FunCall(ileft, i, a); :};
+
+args                ::= arg_list:a
+                        {: RESULT = a; :}
+                        |
+                        {: RESULT = null; :};
+
+arg_list            ::= arg_list:a COMMA expression:e
+                        {:
+                          ExpList t = a;
+                          while (t.tail != null)
+                          {
+                            t = t.tail;
+                          }
+                          t.tail = new ExpList( e, null );
+                          RESULT = a;
+                        :}
+                        |
+                        expression:e
+                        {: RESULT = new ExpList( e, null); :};
 
 /*------------------------------------------*/
 /*

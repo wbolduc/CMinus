@@ -755,7 +755,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 55: break;
           case 26: 
-            { System.out.println("Comment: " + yytext());/* skip comments */
+            { /* skip comments */
             }
           case 56: break;
           case 27: 

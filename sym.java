@@ -6,44 +6,42 @@
 /** CUP generated class containing symbol constants. */
 public class sym {
   /* terminals */
-  public static final int NE = 18;
-  public static final int LT = 13;
-  public static final int MULTIPLY = 11;
-  public static final int SEMICOLON = 19;
+  public static final int LT = 11;
+  public static final int NE = 16;
+  public static final int MULTIPLY = 9;
+  public static final int SEMICOLON = 17;
   public static final int ELSE = 3;
-  public static final int PLUS = 9;
-  public static final int RPAREN = 22;
-  public static final int INT = 4;
-  public static final int LCURL = 25;
-  public static final int WHILE = 7;
-  public static final int RETURN = 5;
+  public static final int PLUS = 7;
+  public static final int INT = 27;
+  public static final int RPAREN = 20;
+  public static final int LCURL = 23;
+  public static final int WHILE = 5;
+  public static final int RETURN = 4;
   public static final int ERROR = 29;
   public static final int IF = 2;
-  public static final int LPAREN = 21;
-  public static final int GT = 15;
-  public static final int ID = 27;
-  public static final int LE = 14;
-  public static final int NUM = 28;
-  public static final int COMMA = 20;
+  public static final int LPAREN = 19;
+  public static final int GT = 13;
+  public static final int ID = 25;
+  public static final int LE = 12;
+  public static final int NUM = 26;
+  public static final int COMMA = 18;
   public static final int EOF = 0;
-  public static final int DIVIDE = 12;
-  public static final int LSQUARE = 23;
-  public static final int GE = 16;
-  public static final int MINUS = 10;
+  public static final int DIVIDE = 10;
+  public static final int LSQUARE = 21;
+  public static final int GE = 14;
+  public static final int MINUS = 8;
   public static final int error = 1;
-  public static final int EQ = 17;
-  public static final int ASSIGN = 8;
-  public static final int RSQUARE = 24;
-  public static final int RCURL = 26;
-  public static final int VOID = 6;
+  public static final int ASSIGN = 6;
+  public static final int EQ = 15;
+  public static final int RSQUARE = 22;
+  public static final int RCURL = 24;
+  public static final int VOID = 28;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
   "IF",
   "ELSE",
-  "INT",
   "RETURN",
-  "VOID",
   "WHILE",
   "ASSIGN",
   "PLUS",
@@ -66,6 +64,8 @@ public class sym {
   "RCURL",
   "ID",
   "NUM",
+  "INT",
+  "VOID",
   "ERROR"
   };
 }
