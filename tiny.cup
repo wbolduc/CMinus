@@ -78,7 +78,7 @@ terminal ERROR;
 non terminal ExpList program, declaration_list, params_list, params, local_declarations, statement_list, arg_list, args;
 non terminal Exp declaration, var_declaration, fun_declaration, param, compound_stmt, statement, expression, expression_stmt, selection_stmt, iteration_stmt, return_stmt, var, simple_expression, additive_expression, term, factor, call;
 non terminal String type_specifier;
-non terminal int relop, addop, mulop;
+non terminal Integer relop, addop, mulop;
 
 precedence left ELSE;
 
@@ -163,26 +163,52 @@ compound_stmt       ::= LCURL:c local_declarations:l statement_list:s RCURL
 local_declarations  ::= local_declarations:ld var_declaration:v
                         {:
                           ExpList t = ld;
-                          while (t.tail != null)
+                          RESULT = null;
+                          if(t != null)
                           {
-                            t = t.tail;
+                            while (t.tail != null)
+                            {
+                              t = t.tail;
+                            }
+                            if (v != null)
+                            {
+                              t.tail = new ExpList(v, null);
+                            }
+                            RESULT = ld;
                           }
-                          if (v != null)
-                            t.tail = new ExpList(v, null);
-                          RESULT = ld;
+                          else
+                          {
+                            if (v != null)
+                            {
+                              RESULT = new ExpList(v, null);
+                            }
+                          }
                         :}
                         |
                         {:RESULT = null; :} ;
 statement_list      ::= statement_list:sl statement:s
                         {:
                           ExpList t = sl;
-                          while (t.tail != null)
+                          RESULT = null;
+                          if (t != null)
                           {
-                            t = t.tail;
+                            while (t.tail != null)
+                            {
+                              t = t.tail;
+                            }
+                            if (s != null)
+                            {
+                              t.tail = new ExpList(s, null);
+                            }
+                            RESULT = sl;
                           }
-                          if (s != null)
-                            t.tail = new ExpList(s, null);
-                          RESULT = sl;
+                          else
+                          {
+                            if (s != null)
+                            {
+                              RESULT = new ExpList(s, null);
+                            }
+                          }
                         :}
                         |
                         {:RESULT = null; :} ;
@@ -301,7 +327,7 @@ call                ::= ID:i LPAREN args:a RPAREN
 args                ::= arg_list:a
                         {: RESULT = a; :}
                         |
-                        {: RESULT = null; :};
+                        {: RESULT = (ExpList)null; :};
 
 arg_list            ::= arg_list:a COMMA expression:e
                         {:
