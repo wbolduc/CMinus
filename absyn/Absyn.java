@@ -13,7 +13,7 @@ abstract public class Absyn {
     while( tree != null ) {
       showTree( tree.head, spaces );
       tree = tree.tail;
-    } 
+    }
   }
 
   static private void showTree( Exp tree, int spaces ) {
@@ -21,18 +21,18 @@ abstract public class Absyn {
       showTree( (AssignExp)tree, spaces );
     else if( tree instanceof IfExp )
       showTree( (IfExp)tree, spaces );
-    else if( tree instanceof IntExp )
-      showTree( (IntExp)tree, spaces );
     else if( tree instanceof OpExp )
       showTree( (OpExp)tree, spaces );
-    else if( tree instanceof ReadExp )
-      showTree( (ReadExp)tree, spaces );
     else if( tree instanceof RepeatExp )
       showTree( (RepeatExp)tree, spaces );
+    else if( tree instanceof VarDec )
+      showTree( (VarDec)tree, spaces);
     else if( tree instanceof VarExp )
       showTree( (VarExp)tree, spaces );
-    else if( tree instanceof WriteExp ) 
-      showTree( (WriteExp)tree, spaces );
+    else if( tree instanceof ArrDec )
+      showTree( (ArrDec)tree, spaces);
+    else if( tree instanceof ArrExp )
+      showTree( (ArrExp)tree, spaces );
     else {
       indent( spaces );
       System.out.println( "Illegal expression at line " + tree.pos  );
@@ -56,14 +56,9 @@ abstract public class Absyn {
     showTree( tree.elsepart, spaces );
   }
 
-  static private void showTree( IntExp tree, int spaces ) {
-    indent( spaces );
-    System.out.println( "IntExp: " + tree.value ); 
-  }
-
   static private void showTree( OpExp tree, int spaces ) {
     indent( spaces );
-    System.out.print( "OpExp:" ); 
+    System.out.print( "OpExp:" );
     switch( tree.op ) {
       case OpExp.PLUS:
         System.out.println( " + " );
@@ -91,13 +86,7 @@ abstract public class Absyn {
     }
     spaces += SPACES;
     showTree( tree.left, spaces );
-    showTree( tree.right, spaces ); 
-  }
-
-  static private void showTree( ReadExp tree, int spaces ) {
-    indent( spaces );
-    System.out.println( "ReadExp:" );
-    showTree( tree.input, spaces + SPACES );  
+    showTree( tree.right, spaces );
   }
 
   static private void showTree( RepeatExp tree, int spaces ) {
@@ -105,7 +94,17 @@ abstract public class Absyn {
     System.out.println( "RepeatExp:" );
     spaces += SPACES;
     showTree( tree.exps, spaces );
-    showTree( tree.test, spaces ); 
+    showTree( tree.test, spaces );
+  }
+
+  static private void showTree( VarDec tree, int spaces ) {
+    indent( spaces );
+    System.out.println( "VarDec: " + tree.name + " type :" + tree.type);
+  }
+
+  static private void showTree( ArrDec tree, int spaces ) {
+    indent( spaces );
+    System.out.println( "ArrDec: " + tree.name + " type: " + tree.type + " size: " + tree.size);
   }
 
   static private void showTree( VarExp tree, int spaces ) {
@@ -113,10 +112,51 @@ abstract public class Absyn {
     System.out.println( "VarExp: " + tree.name );
   }
 
-  static private void showTree( WriteExp tree, int spaces ) {
+  static private void showTree( ArrExp tree, int spaces ) {
     indent( spaces );
-    System.out.println( "WriteExp:" );
-    showTree( tree.output, spaces + SPACES ); 
+    System.out.println( "VarExp: " + tree.name );
+    spaces += SPACES;
+    showTree (tree.index, spaces);
   }
+
+  static private void showTree( FunDec tree, int spaces)
+  {
+    indent( spaces );
+    System.out.println( "FunDec: " + tree.name + " type: " + tree.type);
+    showParams(tree.paramList, spaces);
+  }
+
+  static private void showParams( ExpList list, int spaces)
+  {
+    while( list != null ) {
+      showParam( list.head, spaces );
+      list = list.tail;
+    }
+  }
+
+  static private void showParam(Exp param, int spaces)
+  {
+    if (param != null)
+    {
+      if (param instanceof VarDec)
+        showVarDec((VarDec)param, spaces);
+      else if (param instanceof ArrDec)
+        showArrDec((ArrDec)param, spaces);
+      else
+        System.out.println("Unrecognized variable");
+    }
+  }
+
+  static private void showVarDec(VarDec v, int spaces)
+  {
+    indent(spaces);
+    System.out.println("ID: " + v.name + " type: " + v.type);
+  }
+  static private void showArrDec(ArrDec v, int spaces)
+  {
+    indent(spaces);
+    System.out.println("ID: " + v.name + " type: " + v.type + " size: " + v.size);
+  }
+
 
 }

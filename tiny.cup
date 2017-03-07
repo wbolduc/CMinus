@@ -69,60 +69,228 @@ parser code {:
 
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
 
-terminal IF, ELSE, INT, RETURN, VOID, WHILE;
+terminal IF, ELSE, RETURN, WHILE;
 terminal ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE, LT, LE, GT, GE, EQ, NE, SEMICOLON, COMMA, LPAREN, RPAREN, LSQUARE, RSQUARE, LCURL, RCURL;
 terminal String ID, NUM;
+terminal String INT, VOID;
 terminal ERROR;
 
-non terminal ExpList program, declaration_list;
-non terminal Exp declaration, var_declaration, type_specifier, fun_declaration, params, params_list, param, compound_stmt, local_declarations, statement_list, statement, expression_stmt, selection_stmt, iteration_stmt, return_stmt, expression, var, simple_expression, relop, additive_expression, addop, term, mulop, factor, call, args, arg_list;
+non terminal ExpList program, declaration_list, params_list, params, local_declarations, statement_list;
+non terminal Exp declaration, var_declaration, fun_declaration, param, compound_stmt, statement, expression, expression_stmt, selection_stmt, iteration_stmt, return_stmt, var, simple_expression, additive_expression, term, factor, call, args, arg_list;
+non terminal String type_specifier;
+non terminal int relop, addOp, mulop;
 
 precedence left ELSE;
 
 /* ----------------------------Grammar Section-------------------- */
-program             ::= declaration_list
+program             ::= declaration_list:dl
                         {:
-                          System.out.println("it's good!");
+                          RESULT = dl;
+                          System.out.println( "The abstract syntax tree is:" );
+                          //Absyn.showTree( RESULT, 0 );
                         :};
-declaration_list    ::= declaration_list declaration | declaration;
-declaration         ::= var_declaration | fun_declaration;
-var_declaration     ::= type_specifier ID SEMICOLON
+
+declaration_list    ::= declaration_list:dl declaration:d
+                        {:ExpList t = dl; //loop to end of dl then add d to tail
+                          while(t.tail != null)
+                          {
+                            t = t.tail;
+                          }
+                          t.tail = new ExpList(d, null);
+                          RESULT = dl;
+                        :}
                         |
-                        type_specifier ID LSQUARE NUM RSQUARE SEMICOLON;
-type_specifier      ::= INT | VOID;
-fun_declaration     ::= type_specifier ID LPAREN params RPAREN compound_stmt;
-params              ::= params_list | VOID;
-params_list         ::= params_list COMMA param | param;
-param               ::= type_specifier ID | type_specifier ID LSQUARE RSQUARE;
-compound_stmt       ::= LCURL local_declarations statement_list RCURL
+                        declaration:d
+                        {: RESULT = new ExpList(d, null); :};
+
+declaration         ::= var_declaration:vd
+                        {: RESULT = vd; :}
                         |
-                        LCURL statement_list RCURL
+                        fun_declaration:fd
+                        {: RESULT = fd; :};
+
+var_declaration     ::= type_specifier:t ID:i SEMICOLON
+                        {: RESULT = new VarDec(tleft, t, i); :}
                         |
-                        LCURL RCURL;
-local_declarations  ::= local_declarations var_declaration | var_declaration;
-statement_list      ::= statement_list statement | statement;
-statement           ::= expression_stmt | compound_stmt | selection_stmt | iteration_stmt | return_stmt;
-expression_stmt     ::= expression SEMICOLON | SEMICOLON;
-selection_stmt      ::= IF LPAREN expression RPAREN statement
+                        type_specifier:t ID:i LSQUARE NUM:s RSQUARE SEMICOLON
+                        {: RESULT = new ArrDec(tleft, t, i, s); :};
+
+type_specifier      ::= INT:i
+                        {: RESULT = "int"; :}
                         |
-                        IF LPAREN expression RPAREN statement ELSE statement;
-iteration_stmt      ::= WHILE LPAREN expression RPAREN statement;
-return_stmt         ::= RETURN SEMICOLON | RETURN expression SEMICOLON;
-expression          ::= var ASSIGN expression | simple_expression;
-var                 ::= ID | ID LSQUARE expression RSQUARE;
-simple_expression   ::= additive_expression relop additive_expression | additive_expression;
-relop               ::= LE | LT | GT | GE | EQ | NE;
-additive_expression ::= additive_expression addop term | term;
-addop               ::= PLUS | MINUS;
+                        VOID:v
+                        {: RESULT = "void"; :};
+
+fun_declaration     ::= type_specifier:t ID:i LPAREN params:p RPAREN compound_stmt:cs
+                        {: RESULT = new FunDec( tleft, t, i, p); :};
+
+params              ::= params_list:pl
+                        {: RESULT = pl; :}
+                        |
+                        VOID:v
+                        {: RESULT = null; :};
+
+params_list         ::= params_list:pl COMMA param:p
+                        {:ExpList t = pl;
+                          while (t.tail != null)
+                          {
+                            t = t.tail;
+                          }
+                          t.tail = new ExpList(p, null);
+                          RESULT = pl;
+                        :}
+                        |
+                        param:p
+                        {:
+                          RESULT = new ExpList(p, null);
+                        :};
+
+param               ::= type_specifier:t ID:i
+                        {:
+                          RESULT = new VarDec(tleft, t, i);
+                        :}
+                        |
+                        type_specifier:t ID:i LSQUARE RSQUARE
+                        {:
+                          RESULT = new ArrDec(tleft, t, i, null);
+                        :};
+
+compound_stmt       ::= LCURL:c local_declarations:l statement_list:s RCURL
+                        {:
+                          RESULT = new ComStmt(cleft, l, s);
+                        :};
+
+local_declarations  ::= local_declarations:ld var_declaration:v
+                        {:
+                          ExpList t = ld;
+                          while (t.tail != null)
+                          {
+                            t = t.tail;
+                          }
+                          if (v != null)
+                            t.tail = new ExpList(v, null);
+                          RESULT = ld;
+                        :}
+                        |
+                        {:RESULT = null; :} ;
+statement_list      ::= statement_list:sl statement:s
+                        {:
+                          ExpList t = sl;
+                          while (t.tail != null)
+                          {
+                            t = t.tail;
+                          }
+                          if (s != null)
+                            t.tail = new ExpList(s, null);
+                          RESULT = sl;
+                        :}
+                        |
+                        {:RESULT = null; :} ;
+
+statement           ::= expression_stmt:e
+                        {:RESULT = e; :}
+                        |
+                        compound_stmt:c
+                        {:RESULT = c; :}
+                        |
+                        selection_stmt:s
+                        {:RESULT = s; :}
+                        |
+                        iteration_stmt:i
+                        {:RESULT = i; :}
+                        |
+                        return_stmt:r
+                        {:RESULT = r; :};
+
+expression_stmt     ::= expression:e SEMICOLON
+                        {: RESULT = e; :}
+                        |
+                        SEMICOLON
+                        {: RESULT = null; :};
+
+selection_stmt      ::= IF:i LPAREN expression:e RPAREN statement:s
+                        {:RESULT = new IfExp(ileft, e, s, null ); :}
+                        |
+                        IF:i LPAREN expression:e RPAREN statement:th ELSE statement:el
+                        {:RESULT = new IfExp(ileft, e, th, el); :};
+
+iteration_stmt      ::= WHILE:i LPAREN expression:e RPAREN statement:s
+                        {: RESULT = new RepeatExp( ileft, e, s ); :};
+
+return_stmt         ::= RETURN:i SEMICOLON
+                        {: RESULT = new RetExp(ileft, NULL); :}
+                        |
+                        RETURN:i expression:e SEMICOLON
+                        {:  RESULT = new RetExp(ileft, e); :};
+
+expression          ::= var:v ASSIGN expression:e
+                        {:RESULT = new AssignExp( vleft, v, e); :}
+                        |
+                        simple_expression:s
+                        {:RESULT = s; :};
+
+var                 ::= ID:i
+                        {: RESULT = new VarExp(ileft, i); :}
+                        |
+                        ID:i LSQUARE expression:e RSQUARE
+                        {: RESULT = new ArrExp(ileft, i, e); :};
+
+simple_expression   ::= additive_expression:e1 relop:r additive_expression:e2
+                        {:RESULT = new RelOp(e1left, e1, r, e2); :}
+                        |
+                        additive_expression:a
+                        {:RESULT = a; :};
+
+relop               ::= LE
+                        {: RESULT = RelOp.LE; :}
+                        |
+                        LT
+                        {: RESULT = RelOp.LT; :}
+                        |
+                        GT
+                        {: RESULT = RelOp.GT; :}
+                        |
+                        GE
+                        {: RESULT = RelOp.GE; :}
+                        |
+                        EQ
+                        {: RESULT = RelOp.EQ; :}
+                        |
+                        NE
+                        {: RESULT = RelOp.NE; :};
+
+additive_expression ::= additive_expression:e addop:a term:t
+                        {: RESULT = new BinOp(eleft, e, a, t); :}
+                        |
+                        term:t
+                        {: RESULT = t; :};
+
+addop               ::= PLUS
+                        {: RESULT = BinOp.PLUS; :}
+                        |
+                        MINUS
+                        {: RESULT = BinOp.MINUS; :};
+
 term                ::= term mulop factor | factor;
-mulop               ::= MULTIPLY | DIVIDE;
-factor              ::= LPAREN expression RPAREN | var | call | NUM;
+
+mulop               ::= MULTIPLY
+                        {: RESULT = BinOp.MULTIPLY; :}
+                        |
+                        DIVIDE
+                        {: RESULT = BinOp.DIVIDE; :};
+
+factor              ::= LPAREN expression RPAREN
+                        | var
+                        | call
+                        | NUM;
+
 call                ::= ID LPAREN args RPAREN
                         |
                         ID LPAREN RPAREN;
 args                ::= arg_list;
 arg_list            ::= arg_list COMMA expression | expression;
 
+/*------------------------------------------*/
 /*
 program	     ::= stmt_seq:s
                  {: RESULT = s;
