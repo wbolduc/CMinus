@@ -3,7 +3,7 @@ package absyn;
 abstract public class Absyn {
   public int pos;
 
-  final static int SPACES = 4;
+  final static int SPACES = 6;
 
   static private void indent( int spaces ) {
     for( int i = 0; i < spaces; i++ ) System.out.print( " " );
@@ -21,8 +21,12 @@ abstract public class Absyn {
       showTree( (AssignExp)tree, spaces );
     else if( tree instanceof IfExp )
       showTree( (IfExp)tree, spaces );
-    else if( tree instanceof OpExp )
-      showTree( (OpExp)tree, spaces );
+    else if( tree instanceof RelOp )
+      showTree( (RelOp)tree, spaces );
+    else if( tree instanceof BinOp )
+      showTree( (BinOp)tree, spaces );
+    else if( tree instanceof FunCall )
+      showTree( (FunCall)tree, spaces);
     else if( tree instanceof RepeatExp )
       showTree( (RepeatExp)tree, spaces );
     else if( tree instanceof VarDec )
@@ -33,10 +37,83 @@ abstract public class Absyn {
       showTree( (ArrDec)tree, spaces);
     else if( tree instanceof ArrExp )
       showTree( (ArrExp)tree, spaces );
+    else if( tree instanceof ComStmt )
+      showTree( (ComStmt)tree, spaces );
+    else if( tree instanceof FunDec )
+      showTree( (FunDec)tree, spaces );
     else {
       indent( spaces );
-      System.out.println( "Illegal expression at line " + tree.pos  );
+      System.out.println( "Illegal expression at line " + tree.toString() +tree.pos  );
     }
+  }
+
+  static private void showTree( FunCall tree, int spaces)
+  {
+    indent( spaces );
+    System.out.println("FunCall: ");
+    indent( spaces );
+    System.out.println("   Name: " + tree.name);
+
+    ExpList param = tree.argList;
+    while (param != null)
+    {
+      showTree(param.head, spaces + SPACES);
+      param = param.tail;
+    }
+
+  }
+
+  static private void showTree( RelOp tree, int spaces)
+  {
+    indent( spaces );
+    System.out.print("RelOp: ");
+    switch( tree.op )
+    {
+      case RelOp.LT:
+        System.out.println("<");
+        break;
+      case RelOp.LE:
+        System.out.println("<=");
+        break;
+      case RelOp.EQ:
+        System.out.println("==");
+        break;
+      case RelOp.GE:
+        System.out.println(">=");
+        break;
+      case RelOp.GT:
+        System.out.println(">");
+        break;
+      case RelOp.NE:
+        System.out.println("!=");
+        break;
+    }
+
+    showTree(tree.left, spaces + SPACES);
+    showTree(tree.right, spaces + SPACES);
+  }
+
+  static private void showTree( BinOp tree, int spaces)
+  {
+    indent( spaces );
+    System.out.print("BinOp: ");
+    switch( tree.op )
+    {
+      case BinOp.PLUS:
+        System.out.println("+");
+        break;
+      case BinOp.MINUS:
+        System.out.println("-");
+        break;
+      case BinOp.MULTIPLY:
+        System.out.println("*");
+        break;
+      case BinOp.DIVIDE:
+        System.out.println("/");
+    }
+
+    showTree(tree.left, spaces + SPACES);
+    showTree(tree.right, spaces + SPACES);
   }
 
   static private void showTree( AssignExp tree, int spaces ) {
@@ -54,39 +131,6 @@ abstract public class Absyn {
     showTree( tree.test, spaces );
     showTree( tree.thenpart, spaces );
     showTree( tree.elsepart, spaces );
-  }
-
-  static private void showTree( OpExp tree, int spaces ) {
-    indent( spaces );
-    System.out.print( "OpExp:" );
-    switch( tree.op ) {
-      case OpExp.PLUS:
-        System.out.println( " + " );
-        break;
-      case OpExp.MINUS:
-        System.out.println( " - " );
-        break;
-      case OpExp.TIMES:
-        System.out.println( " * " );
-        break;
-      case OpExp.OVER:
-        System.out.println( " / " );
-        break;
-      case OpExp.EQ:
-        System.out.println( " = " );
-        break;
-      case OpExp.LT:
-        System.out.println( " < " );
-        break;
-      case OpExp.GT:
-        System.out.println( " > " );
-        break;
-      default:
-        System.out.println( "Unrecognized operator at line " + tree.pos);
-    }
-    spaces += SPACES;
-    showTree( tree.left, spaces );
-    showTree( tree.right, spaces );
   }
 
   static private void showTree( RepeatExp tree, int spaces ) {
@@ -122,8 +166,39 @@ abstract public class Absyn {
   static private void showTree( FunDec tree, int spaces)
   {
     indent( spaces );
-    System.out.println( "FunDec: " + tree.name + " type: " + tree.type);
-    showParams(tree.paramList, spaces);
+    System.out.println("FunDec: " + tree.name);
+    indent( spaces );
+    System.out.println("  Type: " + tree.type);
+    indent( spaces );
+    System.out.println("Params: ");
+    showParams(tree.paramList, spaces + SPACES);
+    indent( spaces );
+    System.out.println("  Body:");
+    showTree(tree.comStmt, spaces + SPACES);
+  }
+
+  static private void showTree( ComStmt tree, int spaces)
+  {
+    indent( spaces );
+    System.out.println("Local Defs:");
+
+    ExpList locals = tree.locals;
+
+    while (locals != null)
+    {
+      showParam(locals.head, spaces + SPACES);
+      locals = locals.tail;
+    }
+
+    indent( spaces );
+    System.out.println("Statements:");
+
+    ExpList stmts = tree.statements;
+    while (stmts != null)
+    {
+      showTree(stmts.head, spaces + SPACES);
+      stmts = stmts.tail;
+    }
   }
 
   static private void showParams( ExpList list, int spaces)
@@ -145,17 +220,27 @@ abstract public class Absyn {
       else
         System.out.println("Unrecognized variable");
     }
+    else
+    {
+        System.out.println(" none");
+    }
   }
 
   static private void showVarDec(VarDec v, int spaces)
   {
     indent(spaces);
-    System.out.println("ID: " + v.name + " type: " + v.type);
+    System.out.println("  Type: " + v.type );
+    indent(spaces);
+    System.out.println("    ID: " + v.name );
   }
   static private void showArrDec(ArrDec v, int spaces)
   {
     indent(spaces);
-    System.out.println("ID: " + v.name + " type: " + v.type + " size: " + v.size);
+    System.out.println("  Type: " + v.type);
+    indent(spaces);
+    System.out.println("    ID: " + v.name);
+    indent(spaces);
+    System.out.println("  Size: " + v.size);
   }
 
 

@@ -86,8 +86,9 @@ precedence left ELSE;
 program             ::= declaration_list:dl
                         {:
                           RESULT = dl;
+                          System.out.println("This Code complies to the -C spec (is good)");
                           System.out.println( "The abstract syntax tree is:" );
-                          //Absyn.showTree( RESULT, 0 );
+                          Absyn.showTree( RESULT, 0 );
                         :};
 
 declaration_list    ::= declaration_list:dl declaration:d
@@ -122,7 +123,7 @@ type_specifier      ::= INT:i
                         {: RESULT = "void"; :};
 
 fun_declaration     ::= type_specifier:t ID:i LPAREN params:p RPAREN compound_stmt:cs
-                        {: RESULT = new FunDec( tleft, t, i, p); :};
+                        {: RESULT = new FunDec( tleft, t, i, p, cs); :};
 
 params              ::= params_list:pl
                         {: RESULT = pl; :}
