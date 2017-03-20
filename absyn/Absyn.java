@@ -27,16 +27,18 @@ abstract public class Absyn {
       showTree( (BinOp)tree, spaces );
     else if( tree instanceof FunCall )
       showTree( (FunCall)tree, spaces);
-    else if( tree instanceof RepeatExp )
-      showTree( (RepeatExp)tree, spaces );
     else if( tree instanceof VarDec )
       showTree( (VarDec)tree, spaces);
     else if( tree instanceof VarExp )
       showTree( (VarExp)tree, spaces );
+    else if( tree instanceof IntVal )
+      showTree( (IntVal)tree, spaces );
     else if( tree instanceof ArrDec )
       showTree( (ArrDec)tree, spaces);
     else if( tree instanceof ArrExp )
       showTree( (ArrExp)tree, spaces );
+    else if( tree instanceof RetExp )
+      showTree( (RetExp)tree, spaces );
     else if( tree instanceof ComStmt )
       showTree( (ComStmt)tree, spaces );
     else if( tree instanceof FunDec )
@@ -124,6 +126,13 @@ abstract public class Absyn {
     showTree( tree.rhs, spaces );
   }
 
+  static private void showTree( RetExp tree, int spaces ) {
+    indent( spaces );
+    System.out.println( "RetExp:" );
+    spaces += SPACES;
+    showTree( tree.toRet, spaces );
+  }
+
   static private void showTree( IfExp tree, int spaces ) {
     indent( spaces );
     System.out.println( "IfExp:" );
@@ -133,9 +142,9 @@ abstract public class Absyn {
     showTree( tree.elsepart, spaces );
   }
 
-  static private void showTree( RepeatExp tree, int spaces ) {
+  static private void showTree( WhileExp tree, int spaces ) {
     indent( spaces );
-    System.out.println( "RepeatExp:" );
+    System.out.println( "WhileExp:" );
     spaces += SPACES;
     showTree( tree.exps, spaces );
     showTree( tree.test, spaces );
@@ -144,6 +153,11 @@ abstract public class Absyn {
   static private void showTree( VarDec tree, int spaces ) {
     indent( spaces );
     System.out.println( "VarDec: " + tree.name + " type :" + tree.type);
+  }
+
+  static private void showTree( IntVal tree, int spaces ) {
+    indent( spaces );
+    System.out.println( "IntVal: " + tree.val);
   }
 
   static private void showTree( ArrDec tree, int spaces ) {
@@ -171,7 +185,7 @@ abstract public class Absyn {
     System.out.println("  Type: " + tree.type);
     indent( spaces );
     System.out.println("Params: ");
-    showParams(tree.paramList, spaces + SPACES);
+    showTree(tree.paramList, spaces + SPACES);
     indent( spaces );
     System.out.println("  Body:");
     showTree(tree.comStmt, spaces + SPACES);
@@ -186,7 +200,7 @@ abstract public class Absyn {
 
     while (locals != null)
     {
-      showParam(locals.head, spaces + SPACES);
+      showTree(locals.head, spaces + SPACES);
       locals = locals.tail;
     }
 
@@ -200,32 +214,7 @@ abstract public class Absyn {
       stmts = stmts.tail;
     }
   }
-
-  static private void showParams( ExpList list, int spaces)
-  {
-    while( list != null ) {
-      showParam( list.head, spaces );
-      list = list.tail;
-    }
-  }
-
-  static private void showParam(Exp param, int spaces)
-  {
-    if (param != null)
-    {
-      if (param instanceof VarDec)
-        showVarDec((VarDec)param, spaces);
-      else if (param instanceof ArrDec)
-        showArrDec((ArrDec)param, spaces);
-      else
-        System.out.println("Unrecognized variable");
-    }
-    else
-    {
-        System.out.println(" none");
-    }
-  }
-
+/*
   static private void showVarDec(VarDec v, int spaces)
   {
     indent(spaces);
@@ -242,6 +231,6 @@ abstract public class Absyn {
     indent(spaces);
     System.out.println("  Size: " + v.size);
   }
-
+*/
 
 }

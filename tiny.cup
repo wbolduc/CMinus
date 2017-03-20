@@ -86,15 +86,13 @@ precedence left ELSE;
 program             ::= declaration_list:dl
                         {:
                           RESULT = dl;
-                          System.out.println("This Code complies to the -C spec (is good)");
-                          System.out.println( "The abstract syntax tree is:" );
-                          Absyn.showTree( RESULT, 0 );
                         :};
 
 declaration_list    ::= declaration_list:dl declaration:d
                         {:ExpList t = dl; //loop to end of dl then add d to tail
                           while(t.tail != null)
                           {
+                            System.out.println("KU");
                             t = t.tail;
                           }
                           t.tail = new ExpList(d, null);
@@ -242,7 +240,7 @@ selection_stmt      ::= IF:i LPAREN expression:e RPAREN statement:s
                         {:RESULT = new IfExp(ileft, e, th, el); :};
 
 iteration_stmt      ::= WHILE:i LPAREN expression:e RPAREN statement:s
-                        {: RESULT = new RepeatExp( ileft, e, s ); :};
+                        {: RESULT = new WhileExp( ileft, e, s ); :};
 
 return_stmt         ::= RETURN:i SEMICOLON
                         {: RESULT = new RetExp(ileft, null); :}
@@ -320,7 +318,7 @@ factor              ::= LPAREN expression:e RPAREN
                         {: RESULT = c; :}
                         |
                         NUM:n
-                        {: RESULT = new VarExp(nleft, n); :};
+                        {: RESULT = new IntVal(nleft, n); :};
 
 call                ::= ID:i LPAREN args:a RPAREN
                         {: RESULT = new FunCall(ileft, i, a); :};
@@ -343,96 +341,3 @@ arg_list            ::= arg_list:a COMMA expression:e
                         |
                         expression:e
                         {: RESULT = new ExpList( e, null); :};
-
-/*------------------------------------------*/
-/*
-program	     ::= stmt_seq:s
-                 {: RESULT = s;
-                    System.out.println( "The abstract syntax tree is:" );
-                    Absyn.showTree( RESULT, 0 );
-                 :}
-               ;
-
-stmt_seq     ::= stmt_seq:s1 SEMI stmt:s2
-                 {: ExpList t = s1;
-                    while( t.tail != null )
-                      t = t.tail;
-                    t.tail = new ExpList(s2, null);
-                    RESULT = s1;
-                 :}
-               | stmt:s
-                 {: RESULT = new ExpList(s, null); :}
-               | error SEMI stmt:s
-                 {: parser.report_error("invalid", null);
-                    RESULT = new ExpList(s, null);
-                 :}
-               ;
-
-stmt         ::= if_stmt:i
-                 {: RESULT = i; :}
-               | repeat_stmt:r
-                 {: RESULT = r; :}
-               | assign_stmt:a
-                 {: RESULT = a; :}
-               | read_stmt:r
-                 {: RESULT = r; :}
-               | write_stmt:w
-                 {: RESULT = w; :}
-               ;
-
-if_stmt      ::= IF:i exp:e THEN stmt_seq:s END
-                 {: RESULT = new IfExp(ileft, e, s, null); :}
-               | IF:i exp:e THEN stmt_seq:s1 ELSE stmt_seq:s2 END
-                 {: RESULT = new IfExp(ileft, e, s1, s2); :}
-               ;
-
-repeat_stmt  ::= REPEAT:r stmt_seq:s UNTIL exp:e
-                 {: RESULT = new RepeatExp(rleft, s, e); :}
-               ;
-
-assign_stmt  ::= ID:i ASSIGN exp:e
-                 {: RESULT = new AssignExp(ileft, new VarExp(ileft, i), e); :}
-               ;
-
-read_stmt    ::= READ:r ID:i
-                 {: RESULT = new ReadExp(rleft, new VarExp(rleft, i)); :}
-               ;
-
-write_stmt   ::= WRITE:w exp:e
-                 {: RESULT = new WriteExp(wleft, e); :}
-               ;
-
-exp          ::= simple_exp:s1 LT simple_exp:s2
-                 {: RESULT = new OpExp(s1left, s1, OpExp.LT, s2); :}
-               | simple_exp:s1 GT simple_exp:s2
-                 {: RESULT = new OpExp(s1left, s1, OpExp.GT, s2); :}
-               | simple_exp:s1 EQ simple_exp:s2
-                 {: RESULT = new OpExp(s1left, s1, OpExp.EQ, s2); :}
-               | simple_exp:s
-                 {: RESULT = s; :}
-               ;
-
-simple_exp   ::= simple_exp:s PLUS term:t
-                 {: RESULT = new OpExp(sleft, s, OpExp.PLUS, t); :}
-               | simple_exp:s MINUS term:t
-                 {: RESULT = new OpExp(sleft, s, OpExp.MINUS, t); :}
-               | term:t
-                 {: RESULT = t; :}
-               ;
-
-term         ::= term:t TIMES factor:f
-                 {: RESULT = new OpExp(tleft, t, OpExp.TIMES, f); :}
-               | term:t OVER factor:f
-                 {: RESULT = new OpExp(tleft, t, OpExp.OVER, f); :}
-               | factor:f
-                 {: RESULT = f; :}
-               ;
-
-factor       ::= LPAREN exp:e RPAREN
-                 {: RESULT = e; :}
-               | NUM:n
-                 {: RESULT = new IntExp(nleft, n); :}
-               | ID:i
-                 {: RESULT = new VarExp(ileft, i); :}
-               ;
-*/

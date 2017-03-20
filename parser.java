@@ -361,9 +361,6 @@ class CUP$parser$actions {
 		ExpList dl = (ExpList)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
                           RESULT = dl;
-                          System.out.println("This Code complies to the -C spec (is good)");
-                          System.out.println( "The abstract syntax tree is:" );
-                          Absyn.showTree( RESULT, 0 );
                         
               CUP$parser$result = parser.getSymbolFactory().newSymbol("program",0, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -396,6 +393,7 @@ class CUP$parser$actions {
 		ExpList t = dl; //loop to end of dl then add d to tail
                           while(t.tail != null)
                           {
+                            System.out.println("KU");
                             t = t.tail;
                           }
                           t.tail = new ExpList(d, null);
@@ -858,7 +856,7 @@ class CUP$parser$actions {
 		int sleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Exp s = (Exp)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 RESULT = new RepeatExp( ileft, e, s ); 
+		 RESULT = new WhileExp( ileft, e, s ); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("iteration_stmt",17, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-4)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
@@ -1167,7 +1165,7 @@ class CUP$parser$actions {
 		int nleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int nright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String n = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 RESULT = new VarExp(nleft, n); 
+		 RESULT = new IntVal(nleft, n); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("factor",23, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
