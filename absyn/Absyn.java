@@ -3,7 +3,7 @@ package absyn;
 abstract public class Absyn {
   public int pos;
 
-  final static int SPACES = 6;
+  final static int SPACES = 3;
 
   static private void indent( int spaces ) {
     for( int i = 0; i < spaces; i++ ) System.out.print( " " );
@@ -43,6 +43,10 @@ abstract public class Absyn {
       showTree( (ComStmt)tree, spaces );
     else if( tree instanceof FunDec )
       showTree( (FunDec)tree, spaces );
+    else if( tree instanceof WhileExp )
+      showTree( (WhileExp)tree, spaces );
+    else if( tree == null)
+      System.out.println("wew");
     else {
       indent( spaces );
       System.out.println( "Illegal expression at line " + tree.toString() +tree.pos  );
@@ -136,21 +140,30 @@ abstract public class Absyn {
     System.out.println( "IfExp:" );
     spaces += SPACES;
     showTree( tree.test, spaces );
+
+    indent( spaces );
+    System.out.println( " Then:" );
     showTree( tree.thenpart, spaces );
-    showTree( tree.elsepart, spaces );
+
+    if (tree.elsepart != null)
+    {
+        indent( spaces );
+        System.out.println( " Else:" );
+        showTree( tree.elsepart, spaces );
+    }
   }
 
   static private void showTree( WhileExp tree, int spaces ) {
     indent( spaces );
     System.out.println( "WhileExp:" );
     spaces += SPACES;
-    showTree( tree.exps, spaces );
     showTree( tree.test, spaces );
+    showTree( tree.statements, spaces );
   }
 
   static private void showTree( VarDec tree, int spaces ) {
     indent( spaces );
-    System.out.println( "VarDec: " + tree.name + " type :" + tree.type);
+    System.out.println( "VarDec: " + tree.name + ", type: " + tree.type);
   }
 
   static private void showTree( IntVal tree, int spaces ) {
@@ -160,7 +173,7 @@ abstract public class Absyn {
 
   static private void showTree( ArrDec tree, int spaces ) {
     indent( spaces );
-    System.out.println( "ArrDec: " + tree.name + " type: " + tree.type + " size: " + tree.size);
+    System.out.println( "ArrDec: " + tree.name + ", type: " + tree.type + ", size: " + tree.size);
   }
 
   static private void showTree( VarExp tree, int spaces ) {
@@ -170,7 +183,7 @@ abstract public class Absyn {
 
   static private void showTree( ArrExp tree, int spaces ) {
     indent( spaces );
-    System.out.println( "VarExp: " + tree.name );
+    System.out.println( "ArrExp: " + tree.name );
     spaces += SPACES;
     showTree (tree.index, spaces);
   }

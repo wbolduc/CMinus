@@ -393,7 +393,6 @@ class CUP$parser$actions {
 		ExpList t = dl; //loop to end of dl then add d to tail
                           while(t.tail != null)
                           {
-                            System.out.println("KU");
                             t = t.tail;
                           }
                           t.tail = new ExpList(d, null);
