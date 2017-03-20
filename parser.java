@@ -361,8 +361,9 @@ class CUP$parser$actions {
 		ExpList dl = (ExpList)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
                           RESULT = dl;
+                          System.out.println("This Code complies to the -C spec (is good)");
                           System.out.println( "The abstract syntax tree is:" );
-                          //Absyn.showTree( RESULT, 0 );
+                          Absyn.showTree( RESULT, 0 );
                         
               CUP$parser$result = parser.getSymbolFactory().newSymbol("program",0, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -513,7 +514,7 @@ class CUP$parser$actions {
 		int csleft = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).left;
 		int csright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Exp cs = (Exp)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
-		 RESULT = new FunDec( tleft, t, i, p); 
+		 RESULT = new FunDec( tleft, t, i, p, cs); 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("fun_declaration",10, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-5)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
           return CUP$parser$result;
