@@ -16,16 +16,18 @@ import absyn.*;
 
 class Main {
   static public void main(String argv[]) {
+    ExpList result = null;
     /* Start the parser */
     try {
       parser p = new parser(new Lexer(new FileReader(argv[0])));
+      result = (ExpList) p.parse().value;
     } catch (Exception e) {
       /* do cleanup here -- possibly rethrow e */
       e.printStackTrace();
     }
-
-    ExpList result = (ExpList) p.parse().value;
     Absyn.showTree( result, 0 );
+
+    SymbolTable st = new SymbolTable(result);
 
   }
 }

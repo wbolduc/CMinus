@@ -52,9 +52,7 @@ abstract public class Absyn {
   static private void showTree( FunCall tree, int spaces)
   {
     indent( spaces );
-    System.out.println("FunCall: ");
-    indent( spaces );
-    System.out.println("   Name: " + tree.name);
+    System.out.println("FunCall: " + tree.name);
 
     ExpList param = tree.argList;
     while (param != null)
@@ -214,23 +212,4 @@ abstract public class Absyn {
       stmts = stmts.tail;
     }
   }
-/*
-  static private void showVarDec(VarDec v, int spaces)
-  {
-    indent(spaces);
-    System.out.println("  Type: " + v.type );
-    indent(spaces);
-    System.out.println("    ID: " + v.name );
-  }
-  static private void showArrDec(ArrDec v, int spaces)
-  {
-    indent(spaces);
-    System.out.println("  Type: " + v.type);
-    indent(spaces);
-    System.out.println("    ID: " + v.name);
-    indent(spaces);
-    System.out.println("  Size: " + v.size);
-  }
-*/
-
 }
