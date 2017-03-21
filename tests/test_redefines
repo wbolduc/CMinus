@@ -1,0 +1,25 @@
+int a;
+int b;
+int c;
+int b;
+int d;
+
+void dup(void)
+{
+	{
+		int a;
+	}
+	return 0;
+}
+
+void fine(int i, int b, int i)
+{
+	int i;
+	int b;
+	int i;
+	return 1;
+}
+void dup(void)
+{
+	return 0;
+}

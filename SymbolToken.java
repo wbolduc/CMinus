@@ -18,7 +18,12 @@ public class SymbolToken {
   @Override
   public boolean equals(Object obj)
   {
-      return (name + depth).equals(obj);
+    if (obj == null)
+      return false;
+    if (obj == this)
+      return true;
+
+    return (((SymbolToken)obj).name == this.name && ((SymbolToken)obj).depth == this.depth);
   }
 
 }

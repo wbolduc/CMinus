@@ -1,17 +1,25 @@
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.*;
 import absyn.*;
 
 public class SymbolTable {
     final static int SPACES = 3;
 
-    private static HashMap vars = new HashMap();
-    private static HashMap funcs = new HashMap();
+    private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
 
     SymbolTable( ExpList tree )
     {
+        //create hashmap with global scope
+        HashMap globals = new HashMap();
+        //add defaults
+        globals.put("input", new FunDec(-1, "int", "input", null, null));
+        globals.put("output", new FunDec(-1, "void", "output", null, null));
+
+        scopes.add(globals);
+
         while( tree != null ) {
-            typeCheck(tree.head, 0);
+            typeCheck(tree.head, globals);
             tree = tree.tail;
         }
     }
@@ -20,69 +28,105 @@ public class SymbolTable {
       for( int i = 0; i < spaces; i++ ) System.out.print( " " );
     }
 
-    static private void typeCheck( Exp tree, int depth ) {
+    static public void typeCheck( ExpList tree, HashMap curScope ) {
+      while( tree != null ){
+        typeCheck( tree.head, curScope );
+        tree = tree.tail;
+      }
+    }
+
+    static private void typeCheck( Exp tree, HashMap curScope ) {
         if( tree instanceof VarDec )
-          typeCheck( (VarDec)tree, depth );
+          typeCheck( (VarDec)tree, curScope );
         /*else if( tree instanceof IfExp )
-          showTree( (IfExp)tree, spaces );
+          typeCheck( (IfExp)tree, curScope );
         else if( tree instanceof RelOp )
-          showTree( (RelOp)tree, spaces );
+          typeCheck( (RelOp)tree, curScope );
         else if( tree instanceof BinOp )
-          showTree( (BinOp)tree, spaces );
+          typeCheck( (BinOp)tree, curScope );
         else if( tree instanceof FunCall )
-          showTree( (FunCall)tree, spaces);
-        else if( tree instanceof VarDec )
-          showTree( (VarDec)tree, spaces);
+          typeCheck( (FunCall)tree, curScope);
         else if( tree instanceof VarExp )
-          showTree( (VarExp)tree, spaces );
+          typeCheck( (VarExp)tree, curScope );
         else if( tree instanceof IntVal )
-          showTree( (IntVal)tree, spaces );
+          typeCheck( (IntVal)tree, curScope );*/
         else if( tree instanceof ArrDec )
-          showTree( (ArrDec)tree, spaces);
+          typeCheck( (ArrDec)tree, curScope);/*
         else if( tree instanceof ArrExp )
-          showTree( (ArrExp)tree, spaces );
+          typeCheck( (ArrExp)tree, curScope );*/
         else if( tree instanceof RetExp )
-          showTree( (RetExp)tree, spaces );
+          typeCheck( (RetExp)tree, curScope );
         else if( tree instanceof ComStmt )
-          showTree( (ComStmt)tree, spaces );
+          typeCheck( (ComStmt)tree, curScope );
         else if( tree instanceof FunDec )
-          showTree( (FunDec)tree, spaces );
+          typeCheck( (FunDec)tree, curScope );/*
         else if( tree instanceof WhileExp )
-          showTree( (WhileExp)tree, spaces );*/
+          typeCheck( (WhileExp)tree, curScope );*/
         else if( tree == null)
           System.out.println("wew");
         else {
-            System.out.println( "Illegal type wuuut: " + tree.toString() +tree.pos  );
+            System.out.println( "You didn't define this you dingus: " + tree.toString() +tree.pos  );
         }
       }
-
+/*
     static private void printVarKeys()
     {
-        Iterator i = vars.keySet().iterator();
+        System.out.println("--------");
+        Iterator i = nameMap.keySet().iterator();
         while (i.hasNext())
         {
-            SymbolToken s = (SymbolToken)(i.next());
-            System.out.println(s.name + " " + s.depth);
+            System.out.println("->" + i.next());
         }
-        System.out.println("--------");
+    }*/
+
+    static private void typeCheck( VarDec tree, HashMap curScope)
+    {
+        Object inMap = curScope.get(tree.name);
+        if (inMap != null)
+            System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " already defined at line " + ((VarDec)inMap).pos);
+        else
+            curScope.put(tree.name, tree);
     }
 
-    static private void typeCheck( VarDec tree, int depth)
+    static private void typeCheck( ArrDec tree, HashMap curScope)
     {
-        SymbolToken var = new SymbolToken(tree.name, depth);
-        printVarKeys();
-        System.out.println(var.hashCode());
-        Object inMap = vars.get(var);
+        Object inMap = curScope.get(tree.name);
         if (inMap != null)
-        {
-            System.out.println("Error line " + tree.pos + ":" + tree.name + "already defined at line " + ((VarDec)inMap).pos);
-        }
+            System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " already defined at line " + ((ArrDec)inMap).pos);
         else
-        {
-            //add to vars
-            vars.put(var, tree);
-        }
+            curScope.put(tree.name, tree);
     }
+
+    static private void typeCheck( FunDec tree, HashMap curScope)
+    {
+        Object inMap = curScope.get(tree.name);
+        if (inMap != null)
+            System.out.println("Error line " + tree.pos + ": Function " + tree.name + " already defined at line " + ((FunDec)inMap).pos);
+        else
+            curScope.put(tree.name, tree);
+
+        //NOTE: Putting this outside the else attempts to typecheck the inside of the duplicated function, could produce tons of error ourput
+
+        //add new scope
+        curScope = new HashMap();
+        scopes.add(curScope);
+        //check parameters
+        typeCheck(tree.paramList, curScope);
+        //check contents
+        typeCheck(tree.comStmt, curScope);
+        //leaving scope
+        scopes.remove(scopes.size() - 1);
+    }
+
+    static private void typeCheck( ComStmt tree, HashMap curScope)
+    {
+        curScope = new HashMap();
+        scopes.add(curScope);
+        typeCheck(tree.locals, curScope);
+        typeCheck(tree.statements, curScope);
+        scopes.remove(scopes.size() - 1);
+    }
+
      /*
     static private void showTree( FunCall tree, int spaces)
     {
@@ -231,30 +275,6 @@ public class SymbolTable {
         indent( spaces );
         System.out.println("  Body:");
         showTree(tree.comStmt, spaces + SPACES);
-      }
-
-      static private void showTree( ComStmt tree, int spaces)
-      {
-        indent( spaces );
-        System.out.println("Local Defs:");
-
-        ExpList locals = tree.locals;
-
-        while (locals != null)
-        {
-          showTree(locals.head, spaces + SPACES);
-          locals = locals.tail;
-        }
-
-        indent( spaces );
-        System.out.println("Statements:");
-
-        ExpList stmts = tree.statements;
-        while (stmts != null)
-        {
-          showTree(stmts.head, spaces + SPACES);
-          stmts = stmts.tail;
-        }
       }
     }
     */
