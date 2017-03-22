@@ -16,7 +16,7 @@ abstract public class Absyn {
     }
   }
 
-  static private void showTree( Exp tree, int spaces ) {
+  static public void showTree( Exp tree, int spaces ) {
     if( tree instanceof AssignExp )
       showTree( (AssignExp)tree, spaces );
     else if( tree instanceof IfExp )

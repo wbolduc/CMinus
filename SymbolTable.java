@@ -8,21 +8,49 @@ public class SymbolTable {
 
     private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
     private static HashMap functions = new HashMap();
+    private static String returnType;
+
+    private static Boolean returnExists;
 
     SymbolTable( ExpList tree )
     {
         //add defaults
         functions.put("input", new FunDec(-1, "int", "input", null, null));
-        functions.put("output", new FunDec(-1, "void", "output", null, null));
+        functions.put("output", new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
 
         //create variable scope 0
         HashMap globals = new HashMap();
         scopes.add(globals);
 
+        enterScopeMessege("global");
+
         while( tree != null ) {
             typeCheck(tree.head, globals);
             tree = tree.tail;
         }
+
+        leaveScopeMessege("global");
+    }
+
+    static private void enterScopeMessege(String scopeType)
+    {
+        indent(SPACES * (scopes.size() - 1));
+        System.out.println("Entering scope " + scopeType + (scopes.size() - 1) + ":");
+    }
+
+    static private void leaveScopeMessege(String scopeType)
+    {
+        printScopeVars(scopes.get(scopes.size() - 1));
+        indent(SPACES * (scopes.size() - 1));
+        System.out.println("Leaving scope " + scopeType + (scopes.size() - 1));
+    }
+
+
+    static private void printScopeVars(HashMap scope)
+    {
+        scope.forEach((name, var) -> {
+            Absyn.showTree((Exp)var, SPACES * (scopes.size() - 1));
+        });
     }
 
     static private void indent( int spaces ) {
@@ -89,15 +117,15 @@ public class SymbolTable {
     {
         Object inMap = curScope.get(tree.name);
         if (inMap != null)
-            System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " already defined at line " + ((VarDec)inMap).pos);
+            System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" already defined at line " + ((VarDec)inMap).pos);
         else
         {
             inMap = functions.get(tree.name);
             if (inMap != null)
                 if (((FunDec)inMap).pos == -1)
-                    System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " trying to redefine built in function");
+                    System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" trying to redefine built in function");
                 else
-                    System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " already defined at line " + ((FunDec)inMap).pos + " as a function");
+                    System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" already defined at line " + ((FunDec)inMap).pos + " as a function");
             else
                 curScope.put(tree.name, tree);
         }
@@ -107,16 +135,16 @@ public class SymbolTable {
     {
         Object inMap = curScope.get(tree.name);
         if (inMap != null)
-            System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " already defined at line " + ((ArrDec)inMap).pos);
+            System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" already defined at line " + ((ArrDec)inMap).pos);
         else
         {
             inMap = functions.get(tree.name);
             if (inMap != null)
             {
                 if (((FunDec)inMap).pos == -1)
-                    System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " trying to redefine built in");
+                    System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" trying to redefine built in");
                 else
-                    System.out.println("Error line " + tree.pos + ": Variable " + tree.name + " already defined at line " + ((ArrDec)inMap).pos + " as a function");
+                    System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" already defined at line " + ((ArrDec)inMap).pos + " as a function");
             }
             else
                 curScope.put(tree.name, tree);
@@ -134,31 +162,52 @@ public class SymbolTable {
         else
             functions.put(tree.name, tree);
 
-        //NOTE: Putting this outside the else attempts to typecheck the inside of the duplicated function, could produce tons of error ourput
-
+        returnType = tree.type;
         //add new scope
+
+        //used to check if a return exists in the following
+        returnExists = false;
+
         curScope = new HashMap();
         scopes.add(curScope);
+        enterScopeMessege("l"+tree.pos+"Function\"" + tree.name +"\"");
         //check parameters
         typeCheck(tree.paramList, curScope);
         //check contents
-        typeCheck(tree.comStmt, curScope);
+        ComStmt body = (ComStmt)(tree.comStmt);
+        typeCheck(body.locals, curScope);
+        typeCheck(body.statements, curScope);
         //leaving scope
+        leaveScopeMessege("Function\"" + tree.name +"\"");
         scopes.remove(scopes.size() - 1);
+
+        if (tree.type != "void" && !returnExists)
+            System.out.println("Error line " + tree.pos + ": Function \"" + tree.name + "\" is missing return statement");
+
     }
 
     static private void typeCheck( ComStmt tree, HashMap curScope)
     {
         curScope = new HashMap();
         scopes.add(curScope);
+
+        enterScopeMessege("l"+tree.pos+"ComStmt");
+
         typeCheck(tree.locals, curScope);
         typeCheck(tree.statements, curScope);
+
+        leaveScopeMessege("ComStmt");
+
         scopes.remove(scopes.size() - 1);
     }
 
     static private void typeCheck( RetExp tree, HashMap curScope)
-    {//TODO CHECK RETURN OH GOD
-        typeCheck(tree.toRet, curScope);
+    {
+        String type = typeCheck(tree.toRet, curScope);
+        if (type != returnType)
+            System.out.println("Error line " + tree.pos + ": Mismatching return types. Expected " + returnType + " got " + type);
+
+        returnExists = true;
     }
 
     static private String typeCheck( IntVal tree, HashMap curScope)
@@ -171,18 +220,14 @@ public class SymbolTable {
         typeCheck(tree.test, curScope);
 
         //NewScope
-        curScope = new HashMap();
-        scopes.add(curScope);
+        System.out.print("it");
         typeCheck(tree.thenpart, curScope);
-        scopes.remove(scopes.size() - 1);
 
         //NewScope
         if (tree.elsepart != null)
         {
-            curScope = new HashMap();
-            scopes.add(curScope);
+            System.out.print("ie");
             typeCheck(tree.elsepart, curScope);
-            scopes.remove(scopes.size() - 1);
         }
     }
 
@@ -190,10 +235,8 @@ public class SymbolTable {
     {
         typeCheck(tree.test, curScope);
 
-        curScope = new HashMap();
-        scopes.add(curScope);
+        System.out.print("wh");
         typeCheck(tree.statements, curScope);
-        scopes.remove(scopes.size() - 1);
     }
 
 
@@ -226,11 +269,68 @@ public class SymbolTable {
     static private String typeCheck( FunCall tree, HashMap curScope)
     {
         FunDec def = (FunDec)functions.get(tree.name);
+        //check if it exists
         if (def == null)
         {
             System.out.println("Error line " + tree.pos + ": Function \"" + tree.name + "\" undefined");
             return "err";
         }
+
+        //check parameter types
+        ExpList defParam = def.paramList;
+        ExpList argParam = tree.argList;
+
+        String defName;
+        String defType;
+        String argName;
+        String argType;
+        while (defParam != null && argParam != null)
+        {
+            if (defParam.head instanceof VarDec)
+            {
+                defName = ((VarDec)(defParam.head)).name;
+                defType = ((VarDec)(defParam.head)).type;
+            }
+            else    //must be ArrDec
+            {
+                defName = ((ArrDec)(defParam.head)).name;
+                defType = ((ArrDec)(defParam.head)).type;
+            }
+
+            if (argParam.head instanceof VarExp)
+            {
+                argName = ((VarExp)(argParam.head)).name;
+            }
+            else    //must be ArrDec
+            {
+                argName = ((ArrExp)(argParam.head)).name;
+            }
+
+            argType = inScopeAs(argName);
+
+            System.out.println("argName: " + argName + " argType:" + argType);
+            System.out.println("defName: " + defName + " defType:" + defType);
+
+
+            if (argType != defType)
+            {
+                System.out.println("Error line " + tree.pos + ": Function argument \"" + defName + "\" is of type " + defType + ". Got " + argType);
+            }
+
+            defParam = defParam.tail;
+            argParam = argParam.tail;
+        }
+
+        //Could produce more detailed error messege, forgoing this to make sure I finish in time
+        if (argParam != null)
+        {
+            System.out.println("Error line " + tree.pos + ": Too many arguments for function \"" + tree.name + "\"");
+        }
+        else if (defParam != null)
+        {
+            System.out.println("Error line " + tree.pos + ": Not enough arguments for function \"" + tree.name + "\"");
+        }
+
         return def.type;
     }
 

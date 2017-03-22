@@ -1,7 +1,7 @@
 int a;
 int b;
 
-void dup(void)
+int dup(void)
 {
 	int array[100];
 	if(a == 0)
@@ -12,7 +12,6 @@ void dup(void)
 		cunt;
 		b;
 	}
-	return 0;
 }
 
 void fine(int i, int b, int i)
@@ -29,5 +28,14 @@ void fine(int i, int b, int i)
 }
 void dup(void)
 {
+	int x;
+	void y;
+	int z;
+	input();
+	input(123);
+	output();
+	output(123);
+	dup();
+	fine(x, y, z, a, b);
 	return 0;
 }

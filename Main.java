@@ -27,6 +27,7 @@ class Main {
     }
     Absyn.showTree( result, 0 );
 
+    System.out.println("\n\n");
     SymbolTable st = new SymbolTable(result);
 
   }
