@@ -5,8 +5,9 @@ import absyn.*;
 
 public class SymbolTable {
     final static int SPACES = 3;
-    final static Boolean printScopes = false;
-
+    final static Boolean printScopes = true;
+    private static String prevScopeName;
+    private static Boolean notCompound;
 
     private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
     private static HashMap functions = new HashMap();
@@ -20,47 +21,75 @@ public class SymbolTable {
         functions.put("input", new FunDec(-1, "int", "input", null, null));
         functions.put("output", new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
 
+        enterScopeMessege("Global");
+
         //create variable scope 0
         HashMap globals = new HashMap();
         scopes.add(globals);
-
-        enterScopeMessege("global");
 
         while( tree != null ) {
             typeCheck(tree.head, globals);
             tree = tree.tail;
         }
 
-        leaveScopeMessege("global");
+        leaveScopeMessege("Global");
     }
 
-    static private void enterScopeMessege(String scopeType)
+    static private void enterScopeMessege(String scopeName)
     {
         if (printScopes == false)
             return;
-        indent(SPACES * (scopes.size() - 1));
-        System.out.println("Entering scope " + scopeType + (scopes.size() - 1) + ":");
+
+        int indent = scopes.size() - 1;
+        if (indent < 0)
+            indent = 0;
+        indent(indent);
+        System.out.println("");
+
+        indent(indent);
+        System.out.println("Entering scope " + scopeName);
     }
 
-    static private void leaveScopeMessege(String scopeType)
+    static private void leaveScopeMessege(String scopeName)
     {
         if (printScopes == false)
             return;
+
+        int indent = scopes.size();
         printScopeVars(scopes.get(scopes.size() - 1));
-        indent(SPACES * (scopes.size() - 1));
-        System.out.println("Leaving scope " + scopeType + (scopes.size() - 1));
-    }
 
+        if (--indent < 0)
+            indent = 0;
+        indent(indent);
+        System.out.println("Leaving scope " + scopeName);
+    }
 
     static private void printScopeVars(HashMap scope)
     {
         scope.forEach((name, var) -> {
-            Absyn.showTree((Exp)var, SPACES * (scopes.size() - 1));
+            indent(scopes.size());
+            if (var instanceof VarDec)
+            {
+                VarDec i = (VarDec)var;
+                System.out.println( "VarDec: " + i.name + ", type: " + i.type);
+            }
+            else if (var instanceof ArrDec)
+            {
+                ArrDec i = (ArrDec)var;
+                System.out.println( "ArrDec: " + i.name + ", type: " + i.type + ", size: " + i.size);
+            }
+            else
+                System.out.println( "Jesus Christmas!" );
         });
     }
 
-    static private void indent( int spaces ) {
-      for( int i = 0; i < spaces; i++ ) System.out.print( " " );
+    static private void indent( int indents ) {
+        for (int ind = 0; ind < indents; ind++)
+            {
+            for( int i = 0; i < SPACES; i++ )
+                System.out.print( " " );
+            System.out.print( "|" );
+            }
     }
 
     static public void typeCheck( ExpList tree, HashMap curScope ) {
@@ -179,7 +208,9 @@ public class SymbolTable {
 
         curScope = new HashMap();
         scopes.add(curScope);
-        enterScopeMessege("l"+tree.pos+"Function\"" + tree.name +"\"");
+
+        enterScopeMessege("Function\"" + tree.name + "\"");
+
         //check parameters
         typeCheck(tree.paramList, curScope);
         //check contents
@@ -187,7 +218,9 @@ public class SymbolTable {
         typeCheck(body.locals, curScope);
         typeCheck(body.statements, curScope);
         //leaving scope
-        leaveScopeMessege("Function\"" + tree.name +"\"");
+
+        leaveScopeMessege("Function\"" + tree.name + "\"");
+
         scopes.remove(scopes.size() - 1);
 
         if (tree.type != "void" && !returnExists)
@@ -200,7 +233,7 @@ public class SymbolTable {
         curScope = new HashMap();
         scopes.add(curScope);
 
-        enterScopeMessege("l"+tree.pos+"ComStmt");
+        enterScopeMessege("ComStmt");
 
         typeCheck(tree.locals, curScope);
         typeCheck(tree.statements, curScope);
@@ -227,8 +260,6 @@ public class SymbolTable {
     static private void typeCheck( IfExp tree, HashMap curScope)
     {
         typeCheck(tree.test, curScope);
-
-        //NewScope
         typeCheck(tree.thenpart, curScope);
 
         //NewScope
@@ -301,7 +332,6 @@ public class SymbolTable {
 
         String defName;
         String defType;
-        String argName;
         String argType;
         while (defParam != null && argParam != null)
         {

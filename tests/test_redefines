@@ -1,4 +1,4 @@
-int a;
+/*int a;
 int b;
 
 int dup(void)
@@ -37,6 +37,8 @@ void grep(void)
 	int c;
 	void ded;
 
+	ded = (a > 0);
+
 	ded = c = b = a = 1;
 }
 
@@ -54,4 +56,4 @@ void dup(void)
 	dup();
 	fine(x, y, z);
 	return 0;
-}
+}*/
