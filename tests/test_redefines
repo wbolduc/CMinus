@@ -1,22 +1,29 @@
 int a;
 int b;
-int c;
-int b;
-int d;
 
 void dup(void)
 {
+	int array[100];
+	if(a == 0)
 	{
-		int a;
+		void dumb;
+		a = dumb;
+		a = a;
+		cunt;
+		b;
 	}
 	return 0;
 }
 
 void fine(int i, int b, int i)
 {
+	void b;
 	int i;
-	int b;
-	int i;
+	i = dup();
+	b = dup();
+	a = 0;
+
+	b = array[b];
 	return 1;
 }
 void dup(void)
