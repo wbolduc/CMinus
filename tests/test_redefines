@@ -14,28 +14,44 @@ int dup(void)
 	}
 }
 
-void fine(int i, int b, int i)
+void fine(int i[], int b, int c)
 {
 	int array[100];
 	void b;
 	int i;
+
+	if( b > 0)
+		while(a == 2)
+			dup();
 	i = dup();
 	b = dup();
-	a = 0;
-
+	a = b = i = 1;
 	b = array[b];
 	return 1;
 }
+
+void grep(void)
+{
+	int a;
+	int b;
+	int c;
+	void ded;
+
+	ded = c = b = a = 1;
+}
+
+
 void dup(void)
 {
 	int x;
 	void y;
 	int z;
+	int x;
 	input();
 	input(123);
 	output();
 	output(123);
 	dup();
-	fine(x, y, z, a, b);
+	fine(x, y, z);
 	return 0;
 }

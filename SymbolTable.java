@@ -5,6 +5,8 @@ import absyn.*;
 
 public class SymbolTable {
     final static int SPACES = 3;
+    final static Boolean printScopes = false;
+
 
     private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
     private static HashMap functions = new HashMap();
@@ -34,12 +36,16 @@ public class SymbolTable {
 
     static private void enterScopeMessege(String scopeType)
     {
+        if (printScopes == false)
+            return;
         indent(SPACES * (scopes.size() - 1));
         System.out.println("Entering scope " + scopeType + (scopes.size() - 1) + ":");
     }
 
     static private void leaveScopeMessege(String scopeType)
     {
+        if (printScopes == false)
+            return;
         printScopeVars(scopes.get(scopes.size() - 1));
         indent(SPACES * (scopes.size() - 1));
         System.out.println("Leaving scope " + scopeType + (scopes.size() - 1));
@@ -117,7 +123,10 @@ public class SymbolTable {
     {
         Object inMap = curScope.get(tree.name);
         if (inMap != null)
-            System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" already defined at line " + ((VarDec)inMap).pos);
+            if (inMap instanceof VarDec)
+                System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" already defined at line " + ((VarDec)inMap).pos);
+            else
+                System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" already defined at line " + ((ArrDec)inMap).pos);
         else
         {
             inMap = functions.get(tree.name);
@@ -220,13 +229,11 @@ public class SymbolTable {
         typeCheck(tree.test, curScope);
 
         //NewScope
-        System.out.print("it");
         typeCheck(tree.thenpart, curScope);
 
         //NewScope
         if (tree.elsepart != null)
         {
-            System.out.print("ie");
             typeCheck(tree.elsepart, curScope);
         }
     }
@@ -234,15 +241,14 @@ public class SymbolTable {
     static private void typeCheck( WhileExp tree, HashMap curScope)
     {
         typeCheck(tree.test, curScope);
-
-        System.out.print("wh");
         typeCheck(tree.statements, curScope);
     }
 
 
     static private String typeCheck( VarExp tree, HashMap curScope)
     {
-        VarDec def = (VarDec)inScopeAs(tree.name);
+        Object def = inScopeAs(tree.name);
+        //VarDec def = (VarDec)inScopeAs(tree.name);
 
         if (def == null)
         {
@@ -250,7 +256,7 @@ public class SymbolTable {
             return "err";
         }
 
-        return def.type;
+        return objToType(def);
     }
 
     static private String typeCheck( AssignExp tree, HashMap curScope)
@@ -264,6 +270,19 @@ public class SymbolTable {
             else
                 System.out.println("Error line " + tree.pos + ": Mismatching types on assignment. Expected " + lType + " got " + rType);
         return "err";
+    }
+
+    static private String objToType(Object obj)
+    {
+        if (obj instanceof VarDec)
+            return ((VarDec)obj).type;
+        else if (obj instanceof ArrDec)
+            return ((ArrDec)obj).type;
+        else if (obj instanceof IntVal)
+            return "int";
+        else
+            System.out.println("Oh Gosh");
+            return "kek";
     }
 
     static private String typeCheck( FunCall tree, HashMap curScope)
@@ -297,22 +316,9 @@ public class SymbolTable {
                 defType = ((ArrDec)(defParam.head)).type;
             }
 
-            if (argParam.head instanceof VarExp)
-            {
-                argName = ((VarExp)(argParam.head)).name;
-            }
-            else    //must be ArrDec
-            {
-                argName = ((ArrExp)(argParam.head)).name;
-            }
+            argType = typeCheck(argParam.head, curScope);
 
-            argType = inScopeAs(argName);
-
-            System.out.println("argName: " + argName + " argType:" + argType);
-            System.out.println("defName: " + defName + " defType:" + defType);
-
-
-            if (argType != defType)
+            if (argType != "err" && defType != "err" && argType != defType)
             {
                 System.out.println("Error line " + tree.pos + ": Function argument \"" + defName + "\" is of type " + defType + ". Got " + argType);
             }
