@@ -17,6 +17,7 @@ void dup(void)
 
 void fine(int i, int b, int i)
 {
+	int array[100];
 	void b;
 	int i;
 	i = dup();

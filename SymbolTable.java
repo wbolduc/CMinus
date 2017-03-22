@@ -54,11 +54,11 @@ public class SymbolTable {
         else if( tree instanceof VarDec )
           typeCheck( (VarDec)tree, curScope );
         else if( tree instanceof IfExp )
-          typeCheck( (IfExp)tree, curScope );/*
+          typeCheck( (IfExp)tree, curScope );
         else if( tree instanceof RelOp )
           return typeCheck( (RelOp)tree, curScope );
         else if( tree instanceof BinOp )
-          return typeCheck( (BinOp)tree, curScope );*/
+          return typeCheck( (BinOp)tree, curScope );
         else if( tree instanceof VarExp )
           return typeCheck( (VarExp)tree, curScope );
         else if( tree instanceof ArrExp )
@@ -249,5 +249,31 @@ public class SymbolTable {
         }
 
         return def.type;
+    }
+
+    static private String typeCheck( RelOp tree, HashMap curScope)
+    {
+        String lType = typeCheck(tree.left, curScope);
+        String rType = typeCheck(tree.right, curScope);
+
+        if (lType != "err" && rType != "err")
+            if (lType == rType)
+                return lType;
+            else
+                System.out.println("Error line " + tree.pos + ": Mismatching types on comparison. Expected " + lType + " got " + rType);
+        return "err";
+    }
+
+    static private String typeCheck( BinOp tree, HashMap curScope)
+    {
+        String lType = typeCheck(tree.left, curScope);
+        String rType = typeCheck(tree.right, curScope);
+
+        if (lType != "err" && rType != "err")
+            if (lType == rType)
+                return lType;
+            else
+                System.out.println("Error line " + tree.pos + ": Mismatching types on binary operator. Expected " + lType + " got " + rType);
+        return "err";
     }
 }
