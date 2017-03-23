@@ -140,10 +140,9 @@ public class SymbolTable {
         else if( tree instanceof WhileExp )
           typeCheck( (WhileExp)tree, curScope );
         else if( tree == null)
-          System.out.println("wew");
-        else {
+          return null;
+        else
             System.out.println( "You didn't define this you dingus: " + tree.toString() +tree.pos  );
-        }
         return null;
       }
 
@@ -200,11 +199,11 @@ public class SymbolTable {
             functions.put(tree.name, tree);
 
         returnType = tree.type;
-        //add new scope
 
         //used to check if a return exists in the following
         returnExists = false;
 
+        //add new scope
         curScope = new HashMap();
         scopes.add(curScope);
 
