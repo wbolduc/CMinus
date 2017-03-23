@@ -6,14 +6,13 @@ import absyn.*;
 public class SymbolTable {
     final static int SPACES = 3;
     final static Boolean printScopes = true;
-    private static String prevScopeName;
-    private static Boolean notCompound;
 
     private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
     private static HashMap functions = new HashMap();
     private static String returnType;
 
     private static Boolean returnExists;
+    private static Boolean positiveIndex;
 
     SymbolTable( ExpList tree )
     {
@@ -254,6 +253,8 @@ public class SymbolTable {
 
     static private String typeCheck( IntVal tree, HashMap curScope)
     {
+        if (tree.val < 0)               //basic check to see if an array index is negative, may not be robust
+            positiveIndex = false;
         return "int"; //WEW
     }
 
@@ -373,10 +374,16 @@ public class SymbolTable {
     static private String typeCheck( ArrExp tree, HashMap curScope)
     {
         ArrDec def = (ArrDec)inScopeAs(tree.name);
+
+        positiveIndex = true;
         String type = typeCheck(tree.index, curScope);
 
         if ("int" != type)
             System.out.println("Error line " + tree.pos + ": Array index must be int, got " + type);
+        else if (positiveIndex == false)
+            System.out.println("Error line " + tree.pos + ": Array index must be positive");
+        positiveIndex = true;   //set it back to true to avoid propagating this error
+
 
         if (def == null)
         {

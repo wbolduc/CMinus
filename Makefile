@@ -22,4 +22,4 @@ clean:
 	rm -f parser.java Lexer.java sym.java *.class absyn/*.class *~
 
 test:
-	java $(CLASSPATH) Main tests/test$(n)
+	java $(CLASSPATH) Main tests/$(n)

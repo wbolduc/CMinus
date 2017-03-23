@@ -1,0 +1,30 @@
+/*4.cm undefined and redefined*/
+
+int global;
+int a;
+
+int main(void)
+{
+    int main;
+    int mainVar;
+    int a;
+    int b;
+    int c;
+    int b;
+
+    {
+        int newScope;
+        int b;
+        a = a + b;
+        b = b + c;
+        c = c + d;
+        if (a == 0)
+        {
+            void newScope;
+
+            output(global);
+            output(mainVar);
+        }
+    }
+    return 0;
+}

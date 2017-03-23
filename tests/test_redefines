@@ -1,4 +1,4 @@
-/*int a;
+int a;
 int b;
 
 int dup(void)
@@ -19,6 +19,9 @@ void fine(int i[], int b, int c)
 	int array[100];
 	void b;
 	int i;
+
+	i = 0 - 1;
+	i = array[1];
 
 	if( b > 0)
 		while(a == 2)
@@ -56,4 +59,4 @@ void dup(void)
 	dup();
 	fine(x, y, z);
 	return 0;
-}*/
+}

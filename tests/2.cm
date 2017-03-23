@@ -1,0 +1,11 @@
+/*2.cm function argument matching*/
+void main(void)
+{
+    int x;
+    void y;
+
+    output(x);
+    output(nothing);
+    input();
+    input(nothing);
+}
