@@ -1,9 +1,3 @@
-/*
-  Created by: Fei Song
-  File Name: tiny.cup
-  To Build: java java_cup.Main < tiny.cup
-*/
-
 /* ----------------------Preliminary Declarations Section--------------------*/
 
 /* Import the class java_cup.runtime.*  */
@@ -108,10 +102,10 @@ declaration         ::= var_declaration:vd
                         {: RESULT = fd; :};
 
 var_declaration     ::= type_specifier:t ID:i SEMICOLON
-                        {: RESULT = new VarDec(tleft, t, i); :}
+                        {: RESULT = new VarDec(tleft + 1, t, i); :}
                         |
                         type_specifier:t ID:i LSQUARE NUM:s RSQUARE SEMICOLON
-                        {: RESULT = new ArrDec(tleft, t, i, s); :};
+                        {: RESULT = new ArrDec(tleft + 1, t, i, s); :};
 
 type_specifier      ::= INT:i
                         {: RESULT = "int"; :}
@@ -120,7 +114,7 @@ type_specifier      ::= INT:i
                         {: RESULT = "void"; :};
 
 fun_declaration     ::= type_specifier:t ID:i LPAREN params:p RPAREN compound_stmt:cs
-                        {: RESULT = new FunDec( tleft, t, i, p, cs); :};
+                        {: RESULT = new FunDec( tleft + 1, t, i, p, cs); :};
 
 params              ::= params_list:pl
                         {: RESULT = pl; :}
@@ -145,17 +139,17 @@ params_list         ::= params_list:pl COMMA param:p
 
 param               ::= type_specifier:t ID:i
                         {:
-                          RESULT = new VarDec(tleft, t, i);
+                          RESULT = new VarDec(tleft + 1, t, i);
                         :}
                         |
                         type_specifier:t ID:i LSQUARE RSQUARE
                         {:
-                          RESULT = new ArrDec(tleft, t, i, null);
+                          RESULT = new ArrDec(tleft + 1, t, i, null);
                         :};
 
 compound_stmt       ::= LCURL:c local_declarations:l statement_list:s RCURL
                         {:
-                          RESULT = new ComStmt(cleft, l, s);
+                          RESULT = new ComStmt(cleft + 1, l, s);
                         :};
 
 local_declarations  ::= local_declarations:ld var_declaration:v
@@ -233,34 +227,34 @@ expression_stmt     ::= expression:e SEMICOLON
                         {: RESULT = null; :};
 
 selection_stmt      ::= IF:i LPAREN expression:e RPAREN statement:s
-                        {:RESULT = new IfExp(ileft, e, s, null ); :}
+                        {:RESULT = new IfExp(ileft + 1, e, s, null ); :}
                         |
                         IF:i LPAREN expression:e RPAREN statement:th ELSE statement:el
-                        {:RESULT = new IfExp(ileft, e, th, el); :};
+                        {:RESULT = new IfExp(ileft + 1, e, th, el); :};
 
 iteration_stmt      ::= WHILE:i LPAREN expression:e RPAREN statement:s
-                        {: RESULT = new WhileExp( ileft, e, s ); :};
+                        {: RESULT = new WhileExp( ileft + 1, e, s ); :};
 
 return_stmt         ::= RETURN:i SEMICOLON
-                        {: RESULT = new RetExp(ileft, null); :}
+                        {: RESULT = new RetExp(ileft + 1, null); :}
                         |
                         RETURN:i expression:e SEMICOLON
-                        {:  RESULT = new RetExp(ileft, e); :};
+                        {:  RESULT = new RetExp(ileft + 1, e); :};
 
 expression          ::= var:v ASSIGN expression:e
-                        {:RESULT = new AssignExp( vleft, v, e); :}
+                        {:RESULT = new AssignExp( vleft + 1, v, e); :}
                         |
                         simple_expression:s
                         {:RESULT = s; :};
 
 var                 ::= ID:i
-                        {: RESULT = new VarExp(ileft, i); :}
+                        {: RESULT = new VarExp(ileft + 1, i); :}
                         |
                         ID:i LSQUARE expression:e RSQUARE
-                        {: RESULT = new ArrExp(ileft, i, e); :};
+                        {: RESULT = new ArrExp(ileft + 1, i, e); :};
 
 simple_expression   ::= additive_expression:e1 relop:r additive_expression:e2
-                        {:RESULT = new RelOp(e1left, e1, r, e2); :}
+                        {:RESULT = new RelOp(e1left + 1, e1, r, e2); :}
                         |
                         additive_expression:a
                         {:RESULT = a; :};
@@ -284,7 +278,7 @@ relop               ::= LE
                         {: RESULT = RelOp.NE; :};
 
 additive_expression ::= additive_expression:e addop:a term:t
-                        {: RESULT = new BinOp(eleft, e, a, t); :}
+                        {: RESULT = new BinOp(eleft + 1, e, a, t); :}
                         |
                         term:t
                         {: RESULT = t; :};
@@ -296,7 +290,7 @@ addop               ::= PLUS
                         {: RESULT = BinOp.MINUS; :};
 
 term                ::= term:t mulop:m factor:f
-                        {: RESULT = new BinOp(tleft, t, m, f); :}
+                        {: RESULT = new BinOp(tleft + 1, t, m, f); :}
                         |
                         factor:f
                         {: RESULT = f; :};
@@ -317,10 +311,10 @@ factor              ::= LPAREN expression:e RPAREN
                         {: RESULT = c; :}
                         |
                         NUM:n
-                        {: RESULT = new IntVal(nleft, n); :};
+                        {: RESULT = new IntVal(nleft + 1, n); :};
 
 call                ::= ID:i LPAREN args:a RPAREN
-                        {: RESULT = new FunCall(ileft, i, a); :};
+                        {: RESULT = new FunCall(ileft + 1, i, a); :};
 
 args                ::= arg_list:a
                         {: RESULT = a; :}
