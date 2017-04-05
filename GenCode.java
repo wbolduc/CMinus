@@ -3,6 +3,12 @@ import java.util.ArrayList;
 import java.util.*;
 import absyn.*;
 
+//EXECUTIVE CHOICES
+//FP STARTS AT 0 WITH INCREASING POSITIVE OFFSETS
+//THE FIRST TWO THINGS IN A NEW FP ARE OLDFP, OLDPC
+//RETURNS ARE PASSED FROM R0
+
+
 public class GenCode {
 
 	private static final int PC = 7;
@@ -13,11 +19,11 @@ public class GenCode {
 
 
 	private static String code = "* File: sort.tm\n Standard prelude:\n 0:     LD  6,0(0) 	load gp with maxaddress\n 1:    LDA  5,0(6) 	copy to gp to fp\n 2:     ST  0,0(0) 	clear location 0\n Jump around i/o routines here\n code for input routine\n 4:     ST  0,-1(5) 	store return\n 5:     IN  0,0,0 	input\n 6:     LD  7,-1(5) 	return to caller\n code for output routine\n 7:     ST  0,-1(5) 	store return\n 8:     LD  0,-2(5) 	load output value\n 9:    OUT  0,0,0 	output\n10:   LD  7,-1(5) 	return to caller\n 3:  LDA  7,7(7) 	jump around i/o code\n End of standard prelude.\n";
-	private static int curLine = 11;
-	private static int curMem = 11;
+	private static int currLine = 11;
+	private static int currMem = 11;
 
 	private static HashMap frames = new HashMap();
-   private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
+   //private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
    private static HashMap functions = new HashMap();
 
 	private static int stackPointer;
@@ -29,10 +35,11 @@ public class GenCode {
       functions.put("output", new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
 
 		//create variable scope 0
-      HashMap globals = new HashMap();
-      scopes.add(globals);
+      //HashMap globals = new HashMap(); //NOTE: no globals YET
+		//scopes.add(globals);
 
-      GenCode(tree, globals);
+		//GenCode(tree, globals);
+		GenCode(tree, null);
    }
 
    static public void GenCode( ExpList tree, Frame f ) {
@@ -43,18 +50,7 @@ public class GenCode {
    	}
    }
 
-	static private Object inScopeAs(String name)
-   {
-  	  Object obj;
-  	  for (int i = scopes.size() - 1; i >= 0; i--)
-  	  {
-  			obj = scopes.get(i).get(name);
-  			if (obj != null)
-  				 return obj;
-  	  }
-  	  return null;
-   }
-
+	/*
 	static private Frame getFrame(Ref r)
 	{
 		Ref ref;
@@ -66,14 +62,15 @@ public class GenCode {
 		}
 		return null;
 	}
-
+	*/
 	static private void GenCode( FunDec tree)
 	{
 		//add new scope
-		Scope curScope = new HashMap();
+		HashMap curScope = new HashMap();
 		scopes.add(curScope);
 
-		Frames f = new Frame();			//create frame for this function
+		//LOAD FRAME
+		Frame f = new Frame();			//create frame for this function
 		frames.put(tree.name, f);		//store frame info globaly
 
 		//add parameters to frame
@@ -86,18 +83,32 @@ public class GenCode {
 		//add locals to frame
 		GenCode(body.locals, f);
 
+		//Assume control
+		code += currLine + ":     ST  0,1(5) 	*store old PC\n";
+		currLine++
 
+		//At this point control has been assumed
 		stackPointer = 0;
 		GenCode(body.statements, f);
+
+
+		//Give back control
+		code += currLine + ":     LD  7,1(5) 	*return to caller\n";
+		currLine++;
 
 		//leaving scope
 		scopes.remove(scopes.size() - 1);
 	}
 
+	static private String GenCode( FunCall tree, Frame curScope)
+	{
+
+	}
+
 	static private void GenCode( VarDec tree, Frame frame)
 	{
 		frame.add(tree);
-		curScope.put(tree.name, new Ref(tree, frame));
+		//scopes.get(scopes.size() - 1).curScope.put(tree.name, new Ref(tree, frame));
 	}
 
 	static private int GenCode( IntVal tree, Frame f)
@@ -113,14 +124,14 @@ public class GenCode {
 
 	static private String GenCode( AssignExp tree, Frame f)
 	{
-		GenCode(tree.rhs, curScope);
+		GenCode(tree.rhs, f);
 
 		//first thing in stack is the thing to assign
 		code += currLine + ":  LD 1," + (f.size + stackPointer) + "(" + FP + ")		*move first thing in stack r1\n";
 		currLine++;
 
 
-		if (tree.lhs instanceof VarExp)
+		if ((tree.lhs) instanceof VarExp)
 		{
 			//first thing in stack is the thing to assign
 			code += currLine + ":  ST 1," + f.getOffset(tree.lhs) + "(" + FP + ")		*assign r1 to mem\n";
@@ -136,12 +147,14 @@ public class GenCode {
 	static private String GenCode( Exp tree, Frame f ) {
 		if( tree instanceof FunDec )
 			GenCode( (FunDec)tree );
+		else if( tree instanceof FunCall )
+			GenCode( (FunCall)tree, f);
 		else if( tree instanceof VarDec )
-			GenCode( (VarDec)tree, f );
+			GenCode( (VarDec)tree, f );/*
 		else if( tree instanceof AssignExp )
 			GenCode( (AssignExp)tree, f );
 		else if( tree instanceof IntVal )
-			return GenCode( (IntVal)tree, f );/*
+			return GenCode( (IntVal)tree, f );*\/*
 		else if( tree instanceof IfExp )
 			GenCode( (IfExp)tree, curScope );
 		else if( tree instanceof RelOp )
@@ -152,16 +165,14 @@ public class GenCode {
 			return GenCode( (VarExp)tree, curScope );
 		else if( tree instanceof ArrExp )
 			return GenCode( (ArrExp)tree, curScope );
-		else if( tree instanceof FunCall )
-		  return GenCode( (FunCall)tree, curScope);
 		else if( tree instanceof ArrDec )
 			GenCode( (ArrDec)tree, curScope);
 		else if( tree instanceof RetExp )
 			GenCode( (RetExp)tree, curScope );
 		else if( tree instanceof ComStmt )
-			GenCode( (ComStmt)tree, curScope );*/
+			GenCode( (ComStmt)tree, curScope );
 		else if( tree instanceof WhileExp )
-			GenCode( (WhileExp)tree, curScope );
+			GenCode( (WhileExp)tree, curScope );*/
 		else if( tree == null)
 			return null;
 		else
@@ -259,60 +270,6 @@ public class GenCode {
         else
             System.out.println("Oh Gosh");
             return "kek";
-    }
-
-    static private String GenCode( FunCall tree, HashMap curScope)
-    {
-        FunDec def = (FunDec)functions.get(tree.name);
-        //check if it exists
-        if (def == null)
-        {
-            System.out.println("Error line " + tree.pos + ": Function \"" + tree.name + "\" undefined");
-            return "err";
-        }
-
-        //check parameter types
-        ExpList defParam = def.paramList;
-        ExpList argParam = tree.argList;
-
-        String defName;
-        String defType;
-        String argType;
-        while (defParam != null && argParam != null)
-        {
-            if (defParam.head instanceof VarDec)
-            {
-                defName = ((VarDec)(defParam.head)).name;
-                defType = ((VarDec)(defParam.head)).type;
-            }
-            else    //must be ArrDec
-            {
-                defName = ((ArrDec)(defParam.head)).name;
-                defType = ((ArrDec)(defParam.head)).type;
-            }
-
-            argType = GenCode(argParam.head, curScope);
-
-            if (argType != "err" && defType != "err" && argType != defType)
-            {
-                System.out.println("Error line " + tree.pos + ": Function argument \"" + defName + "\" is of type " + defType + ". Got " + argType);
-            }
-
-            defParam = defParam.tail;
-            argParam = argParam.tail;
-        }
-
-        //Could produce more detailed error messege, forgoing this to make sure I finish in time
-        if (argParam != null)
-        {
-            System.out.println("Error line " + tree.pos + ": Too many arguments for function \"" + tree.name + "\"");
-        }
-        else if (defParam != null)
-        {
-            System.out.println("Error line " + tree.pos + ": Not enough arguments for function \"" + tree.name + "\"");
-        }
-
-        return def.type;
     }
 
     static private String GenCode( ArrExp tree, HashMap curScope)
