@@ -30,5 +30,7 @@ class Main {
     System.out.println("\n\n");
     SymbolTable st = new SymbolTable(result);
 
+	 new GenCode(result);
+
   }
 }
