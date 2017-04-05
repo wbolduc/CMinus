@@ -9,20 +9,34 @@ import absyn.*;
 //RETURNS ARE PASSED FROM R0
 
 
+/*
+* Standard prelude:
+  0:     LD  6,0(0) 	load gp with maxaddress
+  1:    LDA  5,0(6) 	copy to gp to fp
+  2:     ST  0,0(0) 	clear location 0
+* Jump around i/o routines here
+* code for input routine
+  4:     IN  0,0,0 	input
+  6:     LD  7,1(5) 	return to caller
+* code for output routine
+  7:     LD  0,-1(5) 	load output value
+  8:    OUT  0,0,0 	output
+  9:     LD  7,1(5) 	return to caller
+*/
 public class GenCode {
 
 	private static final int PC = 7;
 	private static final int GP = 6;
 	private static final int FP = 5;
-	private static final int AC = 0;
+	private static final int RR = 0;		//result register
 	private static final int AC1 = 1;
 
 
-	private static String code = "* File: sort.tm\n Standard prelude:\n 0:     LD  6,0(0) 	load gp with maxaddress\n 1:    LDA  5,0(6) 	copy to gp to fp\n 2:     ST  0,0(0) 	clear location 0\n Jump around i/o routines here\n code for input routine\n 4:     ST  0,-1(5) 	store return\n 5:     IN  0,0,0 	input\n 6:     LD  7,-1(5) 	return to caller\n code for output routine\n 7:     ST  0,-1(5) 	store return\n 8:     LD  0,-2(5) 	load output value\n 9:    OUT  0,0,0 	output\n10:   LD  7,-1(5) 	return to caller\n 3:  LDA  7,7(7) 	jump around i/o code\n End of standard prelude.\n";
-	private static int currLine = 11;
-	private static int currMem = 11;
+	private static String code = "* Standard prelude:\n0:     LD  6,0(0) 	load gp with maxaddress\n1:    LDA  5,0(6) 	copy to gp to fp\n2:     ST  0,0(0) 	clear location 0\nJump around i/o routines here\ncode for input routine\n4:     IN  0,0,0 	input\n5:     LD  7,1(5) 	return to caller\ncode for output routine\n6:     LD  0,-1(5) 	load output value\n7:    OUT  0,0,0 	output\n8:     LD  7,1(5) 	return to caller\n";
+	private static int currLine = 9;
+	private static int currMem = 9;
 
-	private static HashMap frames = new HashMap();
+	private static HashMap<String, Frame> frames = new HashMap<>();
    //private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
    private static HashMap functions = new HashMap();
 
@@ -37,9 +51,20 @@ public class GenCode {
 		//create variable scope 0
       //HashMap globals = new HashMap(); //NOTE: no globals YET
 		//scopes.add(globals);
-
 		//GenCode(tree, globals);
-		GenCode(tree, null);
+		GenCode(tree, null);			//NOTE: no globals YET
+
+		//jump functions
+		int initialCallerCodeStart = 8; //one less because pc increments
+		for (Frame value : frames.values())
+		{
+			System.out.println(value.function.name + " codeStart: " + value.codeStart + " codeSize: " + value.codeSize);
+			initialCallerCodeStart += value.codeSize;
+		}
+		code += "3:  LDC  " + PC + "," + initialCallerCodeStart + "(0) 	jump around functions\n";
+
+		System.out.println(code);
+
    }
 
    static public void GenCode( ExpList tree, Frame f ) {
@@ -66,82 +91,125 @@ public class GenCode {
 	static private void GenCode( FunDec tree)
 	{
 		//add new scope
-		HashMap curScope = new HashMap();
-		scopes.add(curScope);
+		//HashMap curScope = new HashMap();
+		//scopes.add(curScope);
 
 		//LOAD FRAME
-		Frame f = new Frame();			//create frame for this function
+		Frame f = new Frame(tree);			//create frame for this function
 		frames.put(tree.name, f);		//store frame info globaly
 
 		//add parameters to frame
-		GenCode(tree.paramList, f);
-		f.updateParams();
+		ExpList varList = tree.paramList;
+		while( varList != null ){
+      	f.addParam(varList.head);
+			varList = varList.tail;
+   	}
 
-		//check contents
+		//get body contents
 		ComStmt body = (ComStmt)(tree.comStmt);
 
 		//add locals to frame
-		GenCode(body.locals, f);
+		varList = body.locals;
+		while( varList != null ){
+			f.addLocal(varList.head);
+			varList = varList.tail;
+		}
 
-		//Assume control
-		code += currLine + ":     ST  0,1(5) 	*store old PC\n";
-		currLine++
+		//temp, print frame contents
+		System.out.println("*FRAME VVV " + tree.name);
+		f.printFrame();
+		System.out.println("*FRAME ^^^");
 
 		//At this point control has been assumed
 		stackPointer = 0;
+		f.codeStart = currLine;
 		GenCode(body.statements, f);
 
 
 		//Give back control
-		code += currLine + ":     LD  7,1(5) 	*return to caller\n";
+		code +=  currLine + ":     LD  " + PC + ",1(" + FP + ") 	*return to caller		" + tree.name + "<<<<<\n";
 		currLine++;
+		f.codeSize++;
 
 		//leaving scope
-		scopes.remove(scopes.size() - 1);
+		//scopes.remove(scopes.size() - 1);
 	}
 
-	static private String GenCode( FunCall tree, Frame curScope)
+	static private void GenCode( FunCall tree, Frame f)
 	{
+		//push arguments onto the stack
+		System.out.println("funcall " + tree.name + " " + tree.pos);
+		ExpList args = tree.argList;
+		while( args != null)
+		{
+			GenCode(args.head, f);
+			//expect r0 to have the thing to be pushed to stack
+			code +=  currLine +":     ST  0," + (f.locals + stackPointer) + ",(" + FP + ")		<<<<<\n";
+			f.codeSize++;
+			stackPointer++;
+			currLine++;
+			args = args.tail;
+		}
 
+		//get next function frame
+		Frame nextFrame = frames.get(tree.name);
+		int frameOffSet = (nextFrame.params + f.locals);
+
+		//store the PC to come back to at the new FP
+		code +=  currLine +":     ST  " + PC + "," + frameOffSet + ",(" + FP + ")     moving return pc to func to the func being called";
+		f.codeSize++;
+		currLine++;
+
+		//set the new FP
+		code +=  currLine +":     LD  " + FP + "," + frameOffSet + ",(" + FP + ")		<<<<<\n";
+		f.codeSize++;
+		currLine++;
+
+		//move PC to the function being called
+		code +=  currLine +":     LDC  " + PC + "," + nextFrame.codeStart + "(0)		<<<<<\n";
+		f.codeSize++;
+		stackPointer++;
+		currLine++;
+
+		//move FP back
+		code +=  currLine +":     LD   " + FP + "," + (-frameOffSet) + ",(" + FP + ")		<<<<<\n";
+		f.codeSize++;
+		currLine++;
+
+		System.out.println("donez");
 	}
 
-	static private void GenCode( VarDec tree, Frame frame)
+	/*static private void GenCode( VarDec tree, Frame frame)
 	{
 		frame.add(tree);
 		//scopes.get(scopes.size() - 1).curScope.put(tree.name, new Ref(tree, frame));
-	}
+	}*/
 
 	static private int GenCode( IntVal tree, Frame f)
 	{
-		code += currLine + ":  LDC 1," + tree.val + "(0)		*loading a constant\n";
-		currLine++;
-
-		code += currLine + ":  ST 1," + (f.size + stackPointer) + "(" + FP + ")		*loading a constant\n";
-		stackPointer++;
+		//put an integer into r0
+		code += currLine + ":    LDC  " + RR + "," + tree.val + "(0)		<<<<<\n";
+		f.codeSize++;
 		currLine++;
 		return tree.val;
 	}
 
+	static private void GenCode( RetExp tree, Frame f)
+	{
+		//result of a calculation always ends up in r0, basically do nothing
+		GenCode(tree.toRet, f);
+	}
+
+	static private void GenCode( VarExp tree, Frame f)
+	{
+		code += currLine + ":    LD   " + RR + "," + f.getOffset(tree) + "(" + FP + ")\n";
+		f.codeSize++;
+		currLine++;
+	}
+
 	static private String GenCode( AssignExp tree, Frame f)
 	{
-		GenCode(tree.rhs, f);
-
-		//first thing in stack is the thing to assign
-		code += currLine + ":  LD 1," + (f.size + stackPointer) + "(" + FP + ")		*move first thing in stack r1\n";
-		currLine++;
-
-
-		if ((tree.lhs) instanceof VarExp)
-		{
-			//first thing in stack is the thing to assign
-			code += currLine + ":  ST 1," + f.getOffset(tree.lhs) + "(" + FP + ")		*assign r1 to mem\n";
-			currLine++;
-		}
-		else
-		{
-			code += "*NO ARRAYS YET\n";
-		}
-		return "err";
+		return "3";
 	}
 
 	static private String GenCode( Exp tree, Frame f ) {
@@ -150,25 +218,26 @@ public class GenCode {
 		else if( tree instanceof FunCall )
 			GenCode( (FunCall)tree, f);
 		else if( tree instanceof VarDec )
-			GenCode( (VarDec)tree, f );/*
+			GenCode( (VarDec)tree, f );
+		else if( tree instanceof RetExp )
+			GenCode( (RetExp)tree, f );
+		else if( tree instanceof IntVal )
+			GenCode( (IntVal)tree, f );
+		else if( tree instanceof VarExp )
+			GenCode( (VarExp)tree, f );
+		/*
 		else if( tree instanceof AssignExp )
 			GenCode( (AssignExp)tree, f );
-		else if( tree instanceof IntVal )
-			return GenCode( (IntVal)tree, f );*\/*
 		else if( tree instanceof IfExp )
 			GenCode( (IfExp)tree, curScope );
 		else if( tree instanceof RelOp )
 			return GenCode( (RelOp)tree, curScope );
 		else if( tree instanceof BinOp )
 			return GenCode( (BinOp)tree, curScope );
-		else if( tree instanceof VarExp )
-			return GenCode( (VarExp)tree, curScope );
 		else if( tree instanceof ArrExp )
 			return GenCode( (ArrExp)tree, curScope );
 		else if( tree instanceof ArrDec )
 			GenCode( (ArrDec)tree, curScope);
-		else if( tree instanceof RetExp )
-			GenCode( (RetExp)tree, curScope );
 		else if( tree instanceof ComStmt )
 			GenCode( (ComStmt)tree, curScope );
 		else if( tree instanceof WhileExp )
@@ -217,15 +286,6 @@ public class GenCode {
         scopes.remove(scopes.size() - 1);
     }
 
-    static private void GenCode( RetExp tree, HashMap curScope)
-    {
-        String type = GenCode(tree.toRet, curScope);
-        if (type != returnType)
-            System.out.println("Error line " + tree.pos + ": Mismatching return types. Expected " + returnType + " got " + type);
-
-        returnExists = true;
-    }
-
     static private void GenCode( IfExp tree, HashMap curScope)
     {
         GenCode(tree.test, curScope);
@@ -244,20 +304,6 @@ public class GenCode {
         GenCode(tree.statements, curScope);
     }
 
-
-    static private String GenCode( VarExp tree, HashMap curScope)
-    {
-        Object def = inScopeAs(tree.name);
-        //VarDec def = (VarDec)inScopeAs(tree.name);
-
-        if (def == null)
-        {
-            System.out.println("Error line " + tree.pos + ": Variable \"" + tree.name + "\" undefined");
-            return "err";
-        }
-
-        return objToType(def);
-    }
 
     static private String objToType(Object obj)
     {

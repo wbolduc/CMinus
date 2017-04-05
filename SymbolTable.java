@@ -5,7 +5,7 @@ import absyn.*;
 
 public class SymbolTable {
     final static int SPACES = 3;
-    final static Boolean printScopes = true;
+    final static Boolean printScopes = false;
 
     private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
     private static HashMap functions = new HashMap();
