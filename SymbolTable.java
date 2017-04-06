@@ -5,7 +5,8 @@ import absyn.*;
 
 public class SymbolTable {
     final static int SPACES = 3;
-    final static Boolean printScopes = false;
+
+	 private static String SymbolTableOutPut = "";
 
     private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
     private static HashMap functions = new HashMap();
@@ -34,33 +35,32 @@ public class SymbolTable {
         leaveScopeMessege("Global");
     }
 
+	 static public String returnScopes()
+	 {
+		 return SymbolTableOutPut;
+	 }
+
     static private void enterScopeMessege(String scopeName)
     {
-        if (printScopes == false)
-            return;
-
         int indent = scopes.size() - 1;
         if (indent < 0)
             indent = 0;
         indent(indent);
-        System.out.println("");
+        SymbolTableOutPut += "\n";
 
         indent(indent);
-        System.out.println("Entering scope " + scopeName);
+        SymbolTableOutPut += "Entering scope " + scopeName + "\n";
     }
 
     static private void leaveScopeMessege(String scopeName)
     {
-        if (printScopes == false)
-            return;
-
         int indent = scopes.size();
         printScopeVars(scopes.get(scopes.size() - 1));
 
         if (--indent < 0)
             indent = 0;
         indent(indent);
-        System.out.println("Leaving scope " + scopeName);
+        SymbolTableOutPut += "Leaving scope " + scopeName + "\n";
     }
 
     static private void printScopeVars(HashMap scope)
@@ -70,12 +70,12 @@ public class SymbolTable {
             if (var instanceof VarDec)
             {
                 VarDec i = (VarDec)var;
-                System.out.println( "VarDec: " + i.name + ", type: " + i.type);
+                SymbolTableOutPut += "VarDec: " + i.name + ", type: " + i.type  + "\n";
             }
             else if (var instanceof ArrDec)
             {
                 ArrDec i = (ArrDec)var;
-                System.out.println( "ArrDec: " + i.name + ", type: " + i.type + ", size: " + i.size);
+                SymbolTableOutPut += "ArrDec: " + i.name + ", type: " + i.type + ", size: " + i.size + "\n";
             }
             else
                 System.out.println( "Jesus Christmas!" );
@@ -86,8 +86,8 @@ public class SymbolTable {
         for (int ind = 0; ind < indents; ind++)
             {
             for( int i = 0; i < SPACES; i++ )
-                System.out.print( " " );
-            System.out.print( "|" );
+                SymbolTableOutPut += " ";
+            SymbolTableOutPut += "|";
             }
     }
 

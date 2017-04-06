@@ -1,0 +1,27 @@
+FunDec: foo
+  Type: int
+Params: 
+   VarDec: a, type: int
+   VarDec: b, type: int
+   VarDec: c, type: int
+  Body:
+   Local Defs:
+      VarDec: d, type: int
+      VarDec: e, type: int
+      VarDec: f, type: int
+   Statements:
+      RetExp:
+         IntVal: 0
+FunDec: main
+  Type: void
+Params: 
+  Body:
+   Local Defs:
+      VarDec: a, type: int
+   Statements:
+      FunCall: output
+         IntVal: 100
+      FunCall: output
+         IntVal: 222
+      FunCall: output
+         IntVal: 333

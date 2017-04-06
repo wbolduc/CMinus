@@ -3,28 +3,6 @@ import java.util.ArrayList;
 import java.util.*;
 import absyn.*;
 
-//EXECUTIVE CHOICES
-//FP STARTS AT 0 WITH INCREASING POSITIVE OFFSETS
-//THE FIRST TWO THINGS IN A NEW FP ARE OLDFP, OLDPC
-//RETURNS ARE PASSED FROM R0
-
-
-/*
-* Standard prelude:
-  0:     LD  6,0(0) 	load gp with maxaddress
-  1:    LDA  5,0(6) 	copy to gp to fp
-  2:     ST  0,0(0) 	clear location 0
-* Jump around i/o routines here
-* code for input routine
-  4:     IN  0,0,0 	input
-  5:     LD  4,0(5)
-  6:    LDA  7,2(4) 	return to caller
-* code for output routine
-  7:     LD  0,-1(5) 	load output value
-  8:    OUT  0,0,0 	output
-  9:     LD  4,0(5)
-  10:    LDA  7,2(4) 	return to caller
-*/
 public class GenCode {
 
 	private static final int PC = 7;
@@ -92,9 +70,12 @@ public class GenCode {
 		//halt line
 		code += currLine + ":   HALT   0,0,0\n";
 		currLine++;
-
-		System.out.println(code);
    }
+
+	static public String returnAssembly()
+	{
+		return code;
+	}
 
    static public void GenCode( ExpList tree, Frame f ) {
    	while( tree != null ){
