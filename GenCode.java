@@ -98,7 +98,8 @@ public class GenCode {
 
    static public void GenCode( ExpList tree, Frame f ) {
    	while( tree != null ){
-			stackPointer = 0;
+			if (f != null)
+				stackPointer = f.locals;
       	GenCode( tree.head, f);
 			tree = tree.tail;
    	}
@@ -186,7 +187,7 @@ public class GenCode {
 		//get next function frame
 		System.out.println(tree.name);
 		Frame nextFrame = frames.get(tree.name);
-		int frameOffSet = (nextFrame.params + f.locals);
+		int frameOffSet = (nextFrame.params + stackPointer);
 
 		//store the PC to come back to at the new FP
 		code +=  currLine +":     ST  " + PC + "," + frameOffSet + "(" + FP + ")     moving return pc to func to the func being called\n";
@@ -208,8 +209,6 @@ public class GenCode {
 		code +=  currLine +":     LDA  " + FP + "," + (-frameOffSet) + "(" + FP + ")		<<<<<\n";
 		f.codeSize++;
 		currLine++;
-
-		System.out.println("donez");
 	}
 
 	/*static private void GenCode( VarDec tree, Frame frame)

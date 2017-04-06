@@ -16,4 +16,6 @@ void main(void)
 {
 	int a;
 	output(100);
+	output(222);
+	output(333);
 }
