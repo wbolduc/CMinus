@@ -32,7 +32,7 @@ public class GenCode {
 	private static final int AC1 = 1;
 
 
-	private static String code = "* Standard prelude:\n0:     LD  6,0(0) 	load gp with maxaddress\n1:    LDA  5,0(6) 	copy to gp to fp\n2:     ST  0,0(0) 	clear location 0\nJump around i/o routines here\ncode for input routine\n4:     IN  0,0,0 	input\n5:     LD  7,1(5) 	return to caller\ncode for output routine\n6:     LD  0,-1(5) 	load output value\n7:    OUT  0,0,0 	output\n8:     LD  7,1(5) 	return to caller\n";
+	private static String code = "* Standard prelude:\n0:     LD  6,0(0) 	load gp with maxaddress\n1:    LDA  5,0(6) 	copy to gp to fp\n2:     ST  0,0(0) 	clear location 0\n * Jump around i/o routines here\n*code for input routine\n4:     IN  0,0,0 	input\n5:     LD  7,1(5) 	return to caller\n*code for output routine\n6:     LD  0,-1(5) 	load output value\n7:    OUT  0,0,0 	output\n8:     LD  7,1(5) 	return to caller\n";
 	private static int currLine = 9;
 	private static int currMem = 9;
 
@@ -44,9 +44,22 @@ public class GenCode {
 
    GenCode( ExpList tree )
    {
-   	//add defaults
-      functions.put("input", new FunDec(-1, "int", "input", null, null));
-      functions.put("output", new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
+		// add default functions
+		Frame temp = new Frame(new FunDec(-1, "int", "input", null, null));
+		frames.put("input", temp);
+		temp.codeStart = 3;
+		temp.codeSize = 2;
+		System.out.println("input");
+		temp.printFrame();
+
+		temp = new Frame(new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
+		frames.put("output", temp);
+		temp.codeStart = 6;
+		temp.codeSize = 3;
+		temp.addParam(new VarDec(-1, "int", "x"));
+		System.out.println("output");
+		temp.printFrame();
+
 
 		//create variable scope 0
       //HashMap globals = new HashMap(); //NOTE: no globals YET
@@ -55,7 +68,7 @@ public class GenCode {
 		GenCode(tree, null);			//NOTE: no globals YET
 
 		//jump functions
-		int initialCallerCodeStart = 8; //one less because pc increments
+		int initialCallerCodeStart = 4; //one less because pc increments
 		for (Frame value : frames.values())
 		{
 			System.out.println(value.function.name + " codeStart: " + value.codeStart + " codeSize: " + value.codeSize);
@@ -63,8 +76,23 @@ public class GenCode {
 		}
 		code += "3:  LDC  " + PC + "," + initialCallerCodeStart + "(0) 	jump around functions\n";
 
-		System.out.println(code);
+		//creat first stack frame for main
+		Frame mainFrame = frames.get("main");
+		if (mainFrame != null)
+		{                                                //this 4 is how many more lines to skip to get past this caller
+			code += currLine +":      ST  " + PC + "," + (4 + mainFrame.params) + "(" + PC + ") Store return for main caller\n";
+			currLine++;
+			code += currLine +":     LDA  " + FP + "," + (3 + mainFrame.params) + "(" + PC + ") initial FP for main\n";
+			currLine++;
+			code += currLine +":     LDC  " + PC + "," + mainFrame.codeStart + "(0)		move PC to main\n";
+			currLine++;
+		}
 
+		//halt line
+		code += currLine + ":   HALT   0,0,0\n";
+		currLine++;
+
+		System.out.println(code);
    }
 
    static public void GenCode( ExpList tree, Frame f ) {
@@ -144,7 +172,7 @@ public class GenCode {
 		{
 			GenCode(args.head, f);
 			//expect r0 to have the thing to be pushed to stack
-			code +=  currLine +":     ST  0," + (f.locals + stackPointer) + ",(" + FP + ")		<<<<<\n";
+			code +=  currLine +":     ST  0," + (f.locals + stackPointer) + "(" + FP + ")		<<<<<\n";
 			f.codeSize++;
 			stackPointer++;
 			currLine++;
@@ -152,16 +180,17 @@ public class GenCode {
 		}
 
 		//get next function frame
+		System.out.println(tree.name);
 		Frame nextFrame = frames.get(tree.name);
 		int frameOffSet = (nextFrame.params + f.locals);
 
 		//store the PC to come back to at the new FP
-		code +=  currLine +":     ST  " + PC + "," + frameOffSet + ",(" + FP + ")     moving return pc to func to the func being called";
+		code +=  currLine +":     ST  " + PC + "," + frameOffSet + "(" + FP + ")     moving return pc to func to the func being called\n";
 		f.codeSize++;
 		currLine++;
 
 		//set the new FP
-		code +=  currLine +":     LD  " + FP + "," + frameOffSet + ",(" + FP + ")		<<<<<\n";
+		code +=  currLine +":     LD  " + FP + "," + frameOffSet + "(" + FP + ")		<<<<<\n";
 		f.codeSize++;
 		currLine++;
 
@@ -172,7 +201,7 @@ public class GenCode {
 		currLine++;
 
 		//move FP back
-		code +=  currLine +":     LD   " + FP + "," + (-frameOffSet) + ",(" + FP + ")		<<<<<\n";
+		code +=  currLine +":     LD   " + FP + "," + (-frameOffSet) + "(" + FP + ")		<<<<<\n";
 		f.codeSize++;
 		currLine++;
 
