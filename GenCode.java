@@ -17,11 +17,13 @@ import absyn.*;
 * Jump around i/o routines here
 * code for input routine
   4:     IN  0,0,0 	input
-  6:     LD  7,1(5) 	return to caller
+  5:     LD  4,0(5)
+  6:    LDA  7,2(4) 	return to caller
 * code for output routine
   7:     LD  0,-1(5) 	load output value
   8:    OUT  0,0,0 	output
-  9:     LD  7,1(5) 	return to caller
+  9:     LD  4,0(5)
+  10:    LDA  7,2(4) 	return to caller
 */
 public class GenCode {
 
@@ -30,11 +32,10 @@ public class GenCode {
 	private static final int FP = 5;
 	private static final int RR = 0;		//result register
 	private static final int AC1 = 1;
+	private static final int TR = 4;
 
-
-	private static String code = "* Standard prelude:\n0:     LD  6,0(0) 	load gp with maxaddress\n1:    LDA  5,0(6) 	copy to gp to fp\n2:     ST  0,0(0) 	clear location 0\n * Jump around i/o routines here\n*code for input routine\n4:     IN  0,0,0 	input\n5:     LD  7,1(5) 	return to caller\n*code for output routine\n6:     LD  0,-1(5) 	load output value\n7:    OUT  0,0,0 	output\n8:     LD  7,1(5) 	return to caller\n";
-	private static int currLine = 9;
-	private static int currMem = 9;
+	private static String code = "* Standard prelude:\n 0:     LD  6,0(0) 	load gp with maxaddress\n 1:    LDA  5,0(6) 	copy to gp to fp\n 2:     ST  0,0(0) 	clear location 0\n *Jump around i/o routines here\n *code for input routine\n 4:     IN  0,0,0 	input\n 5:     LD  4,0(5)\n 6:    LDA  7,2(4) 	return to caller\n *code for output routine\n 7:     LD  0,-1(5) 	load output value\n 8:    OUT  0,0,0 	output\n 9:     LD  4,0(5)\n10:    LDA  7,2(4) 	return to caller\n";
+	private static int currLine = 11;
 
 	private static HashMap<String, Frame> frames = new HashMap<>();
    //private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
@@ -48,14 +49,14 @@ public class GenCode {
 		Frame temp = new Frame(new FunDec(-1, "int", "input", null, null));
 		frames.put("input", temp);
 		temp.codeStart = 3;
-		temp.codeSize = 2;
+		temp.codeSize = 3;
 		System.out.println("input");
 		temp.printFrame();
 
 		temp = new Frame(new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
 		frames.put("output", temp);
-		temp.codeStart = 6;
-		temp.codeSize = 3;
+		temp.codeStart = 7;
+		temp.codeSize = 4;
 		temp.addParam(new VarDec(-1, "int", "x"));
 		System.out.println("output");
 		temp.printFrame();
@@ -149,13 +150,16 @@ public class GenCode {
 		System.out.println("*FRAME ^^^");
 
 		//At this point control has been assumed
-		stackPointer = 0;
+		stackPointer = f.locals;
 		f.codeStart = currLine;
 		GenCode(body.statements, f);
 
 
 		//Give back control
-		code +=  currLine + ":     LD  " + PC + ",1(" + FP + ") 	*return to caller		" + tree.name + "<<<<<\n";
+		code += currLine + ":      LD  " + TR + ",0(" + FP + ")\n";
+		currLine++;
+		f.codeSize++;
+		code += currLine + ":     LDA  " + PC + ",2(" + TR + ") 	*return to caller		" + tree.name + "<<<<<\n";
 		currLine++;
 		f.codeSize++;
 
@@ -190,7 +194,7 @@ public class GenCode {
 		currLine++;
 
 		//set the new FP
-		code +=  currLine +":     LD  " + FP + "," + frameOffSet + "(" + FP + ")		<<<<<\n";
+		code +=  currLine +":     LDA " + FP + "," + frameOffSet + "(" + FP + ")		<<<<<\n";
 		f.codeSize++;
 		currLine++;
 
@@ -201,7 +205,7 @@ public class GenCode {
 		currLine++;
 
 		//move FP back
-		code +=  currLine +":     LD   " + FP + "," + (-frameOffSet) + "(" + FP + ")		<<<<<\n";
+		code +=  currLine +":     LDA  " + FP + "," + (-frameOffSet) + "(" + FP + ")		<<<<<\n";
 		f.codeSize++;
 		currLine++;
 
