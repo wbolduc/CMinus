@@ -1,7 +1,7 @@
 JAVA=java
 JAVAC=javac
 JFLEX=../jflex/bin/jflex
-CUPPLACE=../java-cup-11b.jar
+CUPPLACE=../cup/java-cup-11b.jar
 CLASSPATH=-classpath $(CUPPLACE):.
 #CUP=$(JAVA) $(CLASSPATH) java_cup.Main <
 CUP=cup
@@ -23,4 +23,4 @@ clean:
 	rm -f parser.java Lexer.java sym.java *.class absyn/*.class *~
 
 test:
-	java $(CLASSPATH) Main tests/$(n)
+java $(CLASSPATH) Main tests/$(n)

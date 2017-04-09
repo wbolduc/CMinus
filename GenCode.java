@@ -10,61 +10,66 @@ public class GenCode {
 	private static final int FP = 5;
 	private static final int RR = 0;		//result register
 	private static final int AC1 = 1;
-	private static final int TR = 4;
+	private static final int TR = 4;	//temp register
 
-	private static String code = "* Standard prelude:\n 0:     LD  6,0(0) 	load gp with maxaddress\n 1:    LDA  5,0(6) 	copy to gp to fp\n 2:     ST  0,0(0) 	clear location 0\n *Jump around i/o routines here\n *code for input routine\n 4:     IN  0,0,0 	input\n 5:     LD  4,0(5)\n 6:    LDA  7,2(4) 	return to caller\n *code for output routine\n 7:     LD  0,-1(5) 	load output value\n 8:    OUT  0,0,0 	output\n 9:     LD  4,0(5)\n10:    LDA  7,2(4) 	return to caller\n";
+	private static String code = "";
 	private static int currLine = 11;
 
 	private static HashMap<String, Frame> frames = new HashMap<>();
-   //private static ArrayList<HashMap> scopes = new ArrayList<HashMap>();
-   private static HashMap functions = new HashMap();
+	private static HashMap functions = new HashMap();
 
 	private static int stackPointer;
 
-   GenCode( ExpList tree )
-   {
+	GenCode( ExpList tree )
+	{
+		//make standard prelude
+		code += "*input Function\n";
+		currLine = 1;
+		outputLine("IN",0,0,0);
+		outputLine("LD", TR, 0, FP);
+		outputLine("LDA", PC, 1, TR, "*return to caller");
+		code += "*end input function\n";
+
+		code += "*output Function\n";
+		outputLine("LD", 0, -1, FP);
+		outputLine("OUT",0,0,0);
+		outputLine("LD", TR, 0, FP);
+		outputLine("LDA", PC, 1, TR, "*return to caller");
+		code += "*end output Function\n";
+
 		// add default functions
 		Frame temp = new Frame(new FunDec(-1, "int", "input", null, null));
 		frames.put("input", temp);
-		temp.codeStart = 3;
-		temp.codeSize = 3;
+		temp.codeStart = 1;
 		System.out.println("input");
 		temp.printFrame();
 
 		temp = new Frame(new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
 		frames.put("output", temp);
 		temp.codeStart = 7;
-		temp.codeSize = 4;
 		temp.addParam(new VarDec(-1, "int", "x"));
 		System.out.println("output");
 		temp.printFrame();
 
 
 		//create variable scope 0
-      //HashMap globals = new HashMap(); //NOTE: no globals YET
+      	//HashMap globals = new HashMap(); //NOTE: no globals YET
 		//scopes.add(globals);
 		//GenCode(tree, globals);
 		GenCode(tree, null);			//NOTE: no globals YET
 
 		//jump functions
 		int initialCallerCodeStart = 4; //one less because pc increments
-		for (Frame value : frames.values())
-		{
-			System.out.println(value.function.name + " codeStart: " + value.codeStart + " codeSize: " + value.codeSize);
-			initialCallerCodeStart += value.codeSize;
-		}
-		code += "3:  LDC  " + PC + "," + initialCallerCodeStart + "(0) 	jump around functions\n";
+		//TODO:compute jump from currLine
+		code += "0:  LDC  " + PC + "," + currLine + "(0) 	jump around functions\n";
 
 		//creat first stack frame for main
 		Frame mainFrame = frames.get("main");
 		if (mainFrame != null)
 		{                                                //this 4 is how many more lines to skip to get past this caller
-			code += currLine +":      ST  " + PC + "," + (4 + mainFrame.params) + "(" + PC + ") Store return for main caller\n";
-			currLine++;
-			code += currLine +":     LDA  " + FP + "," + (3 + mainFrame.params) + "(" + PC + ") initial FP for main\n";
-			currLine++;
-			code += currLine +":     LDC  " + PC + "," + mainFrame.codeStart + "(0)		move PC to main\n";
-			currLine++;
+			outputLine("ST", PC, 4 + mainFrame.params, PC, "Store return for main caller");
+			outputLine("LDA", FP, 3 + mainFrame.params, PC, "initial FP for main");
+			outputLine("LDC", PC, mainFrame.codeStart,0, "move PC to main");
 		}
 
 		//halt line
@@ -79,32 +84,46 @@ public class GenCode {
 
    static public void GenCode( ExpList tree, Frame f ) {
    	while( tree != null ){
-			if (f != null)
-				stackPointer = f.locals;
+		if (f != null)
+			stackPointer = f.locals;
       	GenCode( tree.head, f);
-			tree = tree.tail;
+		tree = tree.tail;
+   		}
    	}
-   }
 
-	/*
-	static private Frame getFrame(Ref r)
+	static private void outputLine(String command, int r, int d, int s, String comment)
 	{
-		Ref ref;
-		for (int i = scopes.size() - 1; i >= 0; i--)
+		switch(command)
 		{
-			ref = scopes.get(i).get(name);
-			if (ref != null)
-				return ref.belongsTo;
+			case "IN":
+			case "OUT":
+			case "HALT":
+				code += currLine + ":  " + command + "  " + r + "," + d + "," + s + "        " + comment + "\n";
+				break;
+			default:
+				code += currLine + ":  " + command + "  " + r + "," + d + "(" + s + ")       " + comment + "\n";
+				break;
 		}
-		return null;
+		currLine++;
 	}
-	*/
+	static private void outputLine(String command, int r, int d, int s)
+	{
+		switch(command)
+		{
+			case "IN":
+			case "OUT":
+			case "HALT":
+				code += currLine + ":  " + command + "  " + r + "," + d + "," + s + "\n";
+				break;
+			default:
+				code += currLine + ":  " + command + "  " + r + "," + d + "(" + s + ")\n";
+				break;
+		}
+		currLine++;
+	}
+
 	static private void GenCode( FunDec tree)
 	{
-		//add new scope
-		//HashMap curScope = new HashMap();
-		//scopes.add(curScope);
-
 		//LOAD FRAME
 		Frame f = new Frame(tree);			//create frame for this function
 		frames.put(tree.name, f);		//store frame info globaly
@@ -112,9 +131,9 @@ public class GenCode {
 		//add parameters to frame
 		ExpList varList = tree.paramList;
 		while( varList != null ){
-      	f.addParam(varList.head);
+			f.addParam(varList.head);
 			varList = varList.tail;
-   	}
+		}
 
 		//get body contents
 		ComStmt body = (ComStmt)(tree.comStmt);
@@ -132,18 +151,15 @@ public class GenCode {
 		System.out.println("*FRAME ^^^");
 
 		//At this point control has been assumed
-		stackPointer = f.locals;
+		stackPointer = f.locals + 1;				//NOTE:stackPointer always starts 1 after locals
 		f.codeStart = currLine;
 		GenCode(body.statements, f);
 
 
 		//Give back control
-		code += currLine + ":      LD  " + TR + ",0(" + FP + ")\n";
-		currLine++;
-		f.codeSize++;
-		code += currLine + ":     LDA  " + PC + ",2(" + TR + ") 	*return to caller		" + tree.name + "<<<<<\n";
-		currLine++;
-		f.codeSize++;
+		outputLine("LD", TR, 0, FP);
+		outputLine("LDA", PC, 1, TR, "*return to caller " + tree.name + "<<<<<\n");
+
 
 		//leaving scope
 		//scopes.remove(scopes.size() - 1);
@@ -154,70 +170,56 @@ public class GenCode {
 		//push arguments onto the stack
 		System.out.println("funcall " + tree.name + " " + tree.pos);
 		ExpList args = tree.argList;
+
+		int startingStack = stackPointer;
 		while( args != null)
 		{
-			GenCode(args.head, f);
-			//expect r0 to have the thing to be pushed to stack
-			code +=  currLine +":     ST  0," + (f.locals + stackPointer) + "(" + FP + ")		<<<<<\n";
-			f.codeSize++;
+			GenCode(args.head, f);	//expect value to be left at current stack height
 			stackPointer++;
-			currLine++;
 			args = args.tail;
 		}
 
 		//get next function frame
 		System.out.println(tree.name);
 		Frame nextFrame = frames.get(tree.name);
-		int frameOffSet = (nextFrame.params + stackPointer);
-
-		//store the PC to come back to at the new FP
-		code +=  currLine +":     ST  " + PC + "," + frameOffSet + "(" + FP + ")     moving return pc to func to the func being called\n";
-		f.codeSize++;
-		currLine++;
+		int frameOffSet = stackPointer + nextFrame.params + 1;
 
 		//set the new FP
-		code +=  currLine +":     LDA " + FP + "," + frameOffSet + "(" + FP + ")		<<<<<\n";
-		f.codeSize++;
-		currLine++;
+		outputLine("LDA", FP, frameOffSet, FP);
+
+		//store the PC to come back to at the new FP
+		outputLine("ST", PC, 0, FP, "Moving return PC to func being called");
 
 		//move PC to the function being called
-		code +=  currLine +":     LDC  " + PC + "," + nextFrame.codeStart + "(0)		<<<<<\n";
-		f.codeSize++;
-		stackPointer++;
-		currLine++;
+		outputLine("LDC", PC, nextFrame.codeStart, 0);
 
 		//move FP back
-		code +=  currLine +":     LDA  " + FP + "," + (-frameOffSet) + "(" + FP + ")		<<<<<\n";
-		f.codeSize++;
-		currLine++;
-	}
+		outputLine("LDA", FP, -frameOffSet, FP);
 
-	/*static private void GenCode( VarDec tree, Frame frame)
-	{
-		frame.add(tree);
-		//scopes.get(scopes.size() - 1).curScope.put(tree.name, new Ref(tree, frame));
-	}*/
+		//if the called function produced a return, it would be left on the correct part of the stack
+		stackPointer = startingStack + 1;	//move stack pointer back to where it started plus 1 to accomadate the return
+	}
 
 	static private int GenCode( IntVal tree, Frame f)
 	{
 		//put an integer into r0
-		code += currLine + ":    LDC  " + RR + "," + tree.val + "(0)		<<<<<\n";
-		f.codeSize++;
-		currLine++;
+		outputLine("LDC", RR, tree.val, 0);
+		//put that integer onto the stackPointer
+		outputLine("ST", RR, stackPointer + f.locals, FP, "int " + tree.val + " pushed to stack");
 		return tree.val;
 	}
 
 	static private void GenCode( RetExp tree, Frame f)
 	{
-		//result of a calculation always ends up in r0, basically do nothing
+		//leave answer in stack
 		GenCode(tree.toRet, f);
+		//put answer in previous stack
+		outputLine("LD", RR, stackPointer + f.locals, FP, "Moving value to previous stack frame stack");
 	}
 
 	static private void GenCode( VarExp tree, Frame f)
 	{
-		code += currLine + ":    LD   " + RR + "," + f.getOffset(tree) + "(" + FP + ")\n";
-		f.codeSize++;
-		currLine++;
+		outputLine("LD", RR, f.getVarOffset(tree), FP);
 	}
 
 	static private String GenCode( AssignExp tree, Frame f)
@@ -236,7 +238,7 @@ public class GenCode {
 			GenCode( (RetExp)tree, f );
 		else if( tree instanceof IntVal )
 			GenCode( (IntVal)tree, f );
-		else if( tree instanceof VarExp )
+		/*else if( tree instanceof VarExp )
 			GenCode( (VarExp)tree, f );
 		/*
 		else if( tree instanceof AssignExp )

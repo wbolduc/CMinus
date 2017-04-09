@@ -6,7 +6,6 @@ public class Frame
 {
 	public FunDec function;		//the function this Frame pertains to
 	public int codeStart;		//always 1 less than the actual memory address (pc++)
-	public int codeSize = 0;
 
 	public int size = 1;
 	public Integer params = 0;
@@ -32,7 +31,7 @@ public class Frame
 		size++;
 	}
 
-	public int getOffset(Exp e)
+	public int getVarOffset(Exp e)
 	{
 		String name = getName(e);
 		Integer offset = localMap.get(name);
@@ -41,6 +40,11 @@ public class Frame
 			return offset;
 
 		return paramMap.get(name) - paramMap.size() - 1;
+	}
+
+	public int getFrameOffset(Frame nextFrame, int stackPointer)
+	{
+		return nextFrame.params + this.locals + stackPointer + 1;
 	}
 
 	public void printFrame()
