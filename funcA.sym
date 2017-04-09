@@ -1,0 +1,18 @@
+
+Entering scope Global
+   |
+   |Entering scope Function"foo"
+   |   |VarDec: a, type: int
+   |   |VarDec: b, type: int
+   |   |VarDec: c, type: int
+   |   |VarDec: d, type: int
+   |   |VarDec: e, type: int
+   |   |VarDec: f, type: int
+   |Leaving scope Function"foo"
+   |
+   |Entering scope Function"main"
+   |   |VarDec: a, type: int
+   |   |VarDec: b, type: int
+   |   |VarDec: c, type: int
+   |Leaving scope Function"main"
+Leaving scope Global

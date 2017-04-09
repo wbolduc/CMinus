@@ -16,9 +16,6 @@ public class GenCode {
 	private static int currLine = 11;
 
 	private static HashMap<String, Frame> frames = new HashMap<>();
-	private static HashMap functions = new HashMap();
-
-	private static int stackPointer;
 
 	GenCode( ExpList tree )
 	{
@@ -38,15 +35,13 @@ public class GenCode {
 		code += "*end output Function\n";
 
 		// add default functions
-		Frame temp = new Frame(new FunDec(-1, "int", "input", null, null));
+		Frame temp = new Frame(new FunDec(-1, "int", "input", null, null), 1);
 		frames.put("input", temp);
-		temp.codeStart = 1;
 		System.out.println("input");
 		temp.printFrame();
 
-		temp = new Frame(new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
+		temp = new Frame(new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null), 4);
 		frames.put("output", temp);
-		temp.codeStart = 4;
 		temp.addParam(new VarDec(-1, "int", "x"));
 		System.out.println("output");
 		temp.printFrame();
@@ -83,11 +78,10 @@ public class GenCode {
 	}
 
    static public void GenCode( ExpList tree, Frame f ) {
-   	while( tree != null ){
-		if (f != null)
-			stackPointer = 0;
-      	GenCode( tree.head, f);
-		tree = tree.tail;
+		 while( tree != null ){
+			 if (f != null)
+			 		GenCode( tree.head, f);
+				tree = tree.tail;
    		}
    	}
 
@@ -132,8 +126,9 @@ public class GenCode {
 
 	static private void GenCode( FunDec tree)
 	{
+		System.out.println("Found function");
 		//LOAD FRAME
-		Frame f = new Frame(tree);			//create frame for this function
+		Frame f = new Frame(tree, currLine);			//create frame for this function
 		frames.put(tree.name, f);		//store frame info globaly
 
 		//add parameters to frame
@@ -159,7 +154,6 @@ public class GenCode {
 		System.out.println("*FRAME ^^^");
 
 		//At this point control has been assumed
-		f.codeStart = currLine;
 		GenCode(body.statements, f);
 
 
@@ -178,23 +172,21 @@ public class GenCode {
 		System.out.println("funcall " + tree.name + " " + tree.pos);
 		ExpList args = tree.argList;
 
-		int startingStack = stackPointer;
 		while( args != null)
 		{
 			GenCode(args.head, f);	//expect value to be left at current stack height
-
 			if (args.head instanceof FunCall)
-				outputLine("ST", RR, f.locals + stackPointer ,FP, "Getting the return out of r0 and putting it on the stack");
+				outputLine("ST", RR, f.getStackOffset() ,FP, "Getting the return out of r0 and putting it on the stack");
 			args = args.tail;
 		}
 
 		//get next function frame
 		Frame nextFrame = frames.get(tree.name);
-		int frameOffSet = f.locals + stackPointer + nextFrame.params;
+		int frameOffSet = f.getFrameOffset(nextFrame);
 		System.out.println("next frame     " + tree.name);
 		System.out.println("next params    " + nextFrame.params);
 		System.out.println("current locals " + f.locals);
-		System.out.println("current stack  " + stackPointer);
+		System.out.println("current stack  " + f.getStackOffset());
 		System.out.println("offset to next frame " + frameOffSet);
 
 
@@ -211,25 +203,24 @@ public class GenCode {
 		outputLine("LDA", FP, -frameOffSet, FP, "End call to "+ tree.name + " line: " + tree.pos);
 
 		//if the called function produced a return, it would be left on the correct part of the stack
-		stackPointer = startingStack + 1;	//move stack pointer back to where it started plus 1 to accomadate the return
 	}
 
 	static private int GenCode( IntVal tree, Frame f)
 	{
-		stackPointer++;
+		f.incrementStack();
 		//put an integer into r0
 		outputLine("LDC", RR, tree.val, 0);
 		//put that integer onto the stackPointer
-		outputLine("ST", RR, stackPointer + f.locals, FP, "int " + tree.val + " pushed to stack");
+		outputLine("ST", RR, f.getStackOffset(), FP, "int " + tree.val + " pushed to stack");
 		return tree.val;
 	}
 	static private void GenCode( VarExp tree, Frame f)
 	{
-		stackPointer++;
+		f.incrementStack();
 		//put an the value into r0
 		outputLine("LD", RR, f.getVarOffset(tree), FP);
 		//put that value onto the stackPointer
-		outputLine("ST", RR, stackPointer + f.locals, FP, "variable " + tree.name + " pushed to stack");
+		outputLine("ST", RR, f.getStackOffset(), FP, "variable " + tree.name + " pushed to stack");
 	}
 
 	static private void GenCode( RetExp tree, Frame f)
@@ -237,18 +228,18 @@ public class GenCode {
 		//leave answer in stack
 		GenCode(tree.toRet, f);
 		//put answer in previous stack
-		outputLine("LD", RR, stackPointer + f.locals, FP, "Moving value to previous stack frame stack");
+		outputLine("LD", RR, f.getStackOffset(), FP, "Moving value to previous stack frame stack");
 	}
 
 	static private void GenCode( AssignExp tree, Frame f)
 	{
 		//stack does not get bigger because the assignment leaves one variable on the stack and the stack already gets incremented by the following GenCode
 		//get the right hand side onto the stack
-		code += "*" + stackPointer + "\n";
+		code += "*" + f.getStackOffset() + "\n";
 		GenCode(tree.rhs, f);
 
 		//assign the top of the stack to lhs, leave it on top of the stack
-		outputLine("LD", RR, stackPointer + f.locals, FP, "loading the top of the stack to r0 stack="+stackPointer);
+		outputLine("LD", RR, f.getStackOffset(), FP, "loading the top of the stack to r0 stack="+f.getStackOffset());
 		outputLine("ST", RR, f.getVarOffset(tree.lhs), FP, "assigning it");
 	}
 
@@ -258,8 +249,9 @@ public class GenCode {
 			GenCode(tree.left, f);
 			GenCode(tree.right, f);
 
-			outputLine("LD", 2, f.locals + stackPointer--, FP, "Load left and right hand side from stack");
-			outputLine("LD", 1, f.locals + stackPointer, FP);
+			outputLine("LD", 2, f.getStackOffset(), FP, "Load left and right hand side from stack");
+			f.decrementStack();
+			outputLine("LD", 1, f.getStackOffset(), FP);
 
 			switch(tree.op)
 			{
@@ -276,7 +268,7 @@ public class GenCode {
 					outputLine("DIV", 0,1,2);
 					break;
 			}
-			outputLine("ST", 0, f.locals + stackPointer, FP, "Store result back onto stack");
+			outputLine("ST", 0, f.getStackOffset(), FP, "Store result back onto stack");
 	}
 
 	static private String GenCode( Exp tree, Frame f ) {
@@ -293,13 +285,13 @@ public class GenCode {
 		else if( tree instanceof VarExp )
 			GenCode( (VarExp)tree, f );
 		else if( tree instanceof AssignExp )
-			GenCode( (AssignExp)tree, f );/*
+			GenCode( (AssignExp)tree, f );
+		else if( tree instanceof BinOp )
+			GenCode( (BinOp)tree, f );/*
 		else if( tree instanceof IfExp )
 			GenCode( (IfExp)tree, curScope );
 		else if( tree instanceof RelOp )
 			return GenCode( (RelOp)tree, curScope );*/
-		else if( tree instanceof BinOp )
-			GenCode( (BinOp)tree, f );
 		/*else if( tree instanceof ArrExp )
 			return GenCode( (ArrExp)tree, curScope );
 		else if( tree instanceof ArrDec )

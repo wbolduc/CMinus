@@ -11,17 +11,93 @@ Params:
       VarDec: f, type: int
    Statements:
       RetExp:
-         IntVal: 0
+         BinOp: +
+            BinOp: +
+               VarExp: a
+               VarExp: b
+            VarExp: c
 FunDec: main
   Type: void
 Params: 
   Body:
    Local Defs:
       VarDec: a, type: int
+      VarDec: b, type: int
+      VarDec: c, type: int
    Statements:
-      FunCall: output
+      AssignExp:
+         VarExp: c
          IntVal: 100
+      AssignExp:
+         VarExp: b
+         AssignExp:
+            VarExp: a
+            IntVal: 9000
+      AssignExp:
+         VarExp: a
+         VarExp: c
       FunCall: output
-         IntVal: 222
+         IntVal: 1010101
       FunCall: output
-         IntVal: 333
+         VarExp: a
+      FunCall: output
+         VarExp: b
+      FunCall: output
+         VarExp: c
+      AssignExp:
+         VarExp: b
+         BinOp: +
+            VarExp: b
+            IntVal: 1
+      FunCall: output
+         VarExp: b
+      AssignExp:
+         VarExp: b
+         BinOp: -
+            VarExp: b
+            IntVal: 1
+      FunCall: output
+         VarExp: b
+      AssignExp:
+         VarExp: b
+         BinOp: /
+            VarExp: b
+            VarExp: c
+      FunCall: output
+         VarExp: b
+      AssignExp:
+         VarExp: b
+         BinOp: *
+            VarExp: b
+            VarExp: b
+      FunCall: output
+         VarExp: b
+      AssignExp:
+         VarExp: a
+         IntVal: 1
+      AssignExp:
+         VarExp: b
+         IntVal: 2
+      AssignExp:
+         VarExp: c
+         IntVal: 3
+      FunCall: output
+         FunCall: foo
+            VarExp: a
+            VarExp: b
+            VarExp: c
+      AssignExp:
+         VarExp: a
+         IntVal: 20
+      AssignExp:
+         VarExp: b
+         IntVal: 3
+      AssignExp:
+         VarExp: c
+         BinOp: +
+            VarExp: a
+            BinOp: *
+               VarExp: b
+               IntVal: 2
+      FunCall: output
+         VarExp: c
