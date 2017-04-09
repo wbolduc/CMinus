@@ -98,6 +98,10 @@ public class GenCode {
 			case "IN":
 			case "OUT":
 			case "HALT":
+			case "ADD":
+			case "SUB":
+			case "MUL":
+			case "DIV":
 				code += currLine + ":  " + command + "  " + r + "," + d + "," + s + "        " + comment + "\n";
 				break;
 			default:
@@ -113,6 +117,10 @@ public class GenCode {
 			case "IN":
 			case "OUT":
 			case "HALT":
+			case "ADD":
+			case "SUB":
+			case "MUL":
+			case "DIV":
 				code += currLine + ":  " + command + "  " + r + "," + d + "," + s + "\n";
 				break;
 			default:
@@ -244,6 +252,33 @@ public class GenCode {
 		outputLine("ST", RR, f.getVarOffset(tree.lhs), FP, "assigning it");
 	}
 
+	static private void GenCode( BinOp tree, Frame f)
+	{
+			//get the left and the right side things pushed onto the stack
+			GenCode(tree.left, f);
+			GenCode(tree.right, f);
+
+			outputLine("LD", 2, f.locals + stackPointer--, FP, "Load left and right hand side from stack");
+			outputLine("LD", 1, f.locals + stackPointer, FP);
+
+			switch(tree.op)
+			{
+				case 0:
+					outputLine("ADD", 0,1,2);
+					break;
+				case 1:
+					outputLine("SUB", 0,1,2);
+					break;
+				case 2:
+					outputLine("MUL", 0,1,2);
+					break;
+				case 3:
+					outputLine("DIV", 0,1,2);
+					break;
+			}
+			outputLine("ST", 0, f.locals + stackPointer, FP, "Store result back onto stack");
+	}
+
 	static private String GenCode( Exp tree, Frame f ) {
 		if( tree instanceof FunDec )
 			GenCode( (FunDec)tree );
@@ -262,15 +297,15 @@ public class GenCode {
 		else if( tree instanceof IfExp )
 			GenCode( (IfExp)tree, curScope );
 		else if( tree instanceof RelOp )
-			return GenCode( (RelOp)tree, curScope );
+			return GenCode( (RelOp)tree, curScope );*/
 		else if( tree instanceof BinOp )
-			return GenCode( (BinOp)tree, curScope );
-		else if( tree instanceof ArrExp )
+			GenCode( (BinOp)tree, f );
+		/*else if( tree instanceof ArrExp )
 			return GenCode( (ArrExp)tree, curScope );
 		else if( tree instanceof ArrDec )
 			GenCode( (ArrDec)tree, curScope);
 		else if( tree instanceof ComStmt )
-			GenCode( (ComStmt)tree, curScope );
+			GenCode( (ComStmt)tree, f );
 		else if( tree instanceof WhileExp )
 			GenCode( (WhileExp)tree, curScope );*/
 		else if( tree == null)

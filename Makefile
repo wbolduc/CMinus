@@ -1,7 +1,7 @@
 JAVA=java
 JAVAC=javac
 JFLEX=../jflex/bin/jflex
-CUPPLACE=../cup/java-cup-11b.jar
+CUPPLACE=../java-cup-11b.jar
 CLASSPATH=-classpath $(CUPPLACE):.
 #CUP=$(JAVA) $(CLASSPATH) java_cup.Main <
 CUP=cup

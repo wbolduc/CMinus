@@ -9,7 +9,7 @@ int foo(int a, int b, int c)
 	int d;
 	int e;
 	int f;
-	return 0;
+	return a + b + c;
 }
 
 void main(void)
@@ -17,15 +17,35 @@ void main(void)
 	int a;
 	int b;
 	int c;
-	output(100);
-	output(222);
-	output(333);
 
-	b = a = 3232;
+	c = 100;
+	b = a = 9000;
+	a = c;
+	output(1010101);
 	output(a);
 	output(b);
+	output(c);
 
+	b = b + 1;
+	output(b);
+	b = b - 1;
+	output(b);
+	b = b / c;
+	output(b);
+	b = b * b;
+	output(b);
+
+	a = 1;
+	b = 2;
+	c = 3;
+	output(foo(a, b, c));
+
+	a = 20;
+	b = 3;
+	c = a + (b * 2);
+	output(c);
+	/*
 	c = input();
 	output(c);
-	output(input());
+	output(input());*/
 }
