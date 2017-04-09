@@ -14,8 +14,18 @@ int foo(int a, int b, int c)
 
 void main(void)
 {
+	int a;
+	int b;
+	int c;
 	output(100);
 	output(222);
 	output(333);
+
+	b = a = 3232;
+	output(a);
+	output(b);
+
+	c = input();
+	output(c);
 	output(input());
 }
