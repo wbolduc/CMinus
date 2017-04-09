@@ -14,8 +14,8 @@ int foo(int a, int b, int c)
 
 void main(void)
 {
-	int a;
 	output(100);
 	output(222);
 	output(333);
+	output(input());
 }

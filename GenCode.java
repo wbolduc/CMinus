@@ -25,7 +25,7 @@ public class GenCode {
 		//make standard prelude
 		code += "*input Function\n";
 		currLine = 1;
-		outputLine("IN",0,0,0);
+		outputLine("IN",RR,0,0);
 		outputLine("LD", TR, 0, FP);
 		outputLine("LDA", PC, 1, TR, "*return to caller");
 		code += "*end input function\n";
@@ -46,7 +46,7 @@ public class GenCode {
 
 		temp = new Frame(new FunDec(-1, "void", "output", new ExpList(new VarDec(-1, "int", "x"), null), null));
 		frames.put("output", temp);
-		temp.codeStart = 7;
+		temp.codeStart = 4;
 		temp.addParam(new VarDec(-1, "int", "x"));
 		System.out.println("output");
 		temp.printFrame();
@@ -67,8 +67,8 @@ public class GenCode {
 		Frame mainFrame = frames.get("main");
 		if (mainFrame != null)
 		{                                                //this 4 is how many more lines to skip to get past this caller
-			outputLine("ST", PC, 4 + mainFrame.params, PC, "Store return for main caller");
-			outputLine("LDA", FP, 3 + mainFrame.params, PC, "initial FP for main");
+			outputLine("LDA", FP, mainFrame.params, FP, "initial FP for main");
+			outputLine("ST", PC, 0, FP, "Store return for main caller");
 			outputLine("LDC", PC, mainFrame.codeStart,0, "move PC to main");
 		}
 
@@ -85,7 +85,7 @@ public class GenCode {
    static public void GenCode( ExpList tree, Frame f ) {
    	while( tree != null ){
 		if (f != null)
-			stackPointer = f.locals;
+			stackPointer = 0;
       	GenCode( tree.head, f);
 		tree = tree.tail;
    		}
@@ -151,7 +151,6 @@ public class GenCode {
 		System.out.println("*FRAME ^^^");
 
 		//At this point control has been assumed
-		stackPointer = f.locals + 1;				//NOTE:stackPointer always starts 1 after locals
 		f.codeStart = currLine;
 		GenCode(body.statements, f);
 
@@ -174,15 +173,25 @@ public class GenCode {
 		int startingStack = stackPointer;
 		while( args != null)
 		{
-			GenCode(args.head, f);	//expect value to be left at current stack height
 			stackPointer++;
+			GenCode(args.head, f);	//expect value to be left at current stack height
+
+			if (args.head instanceof FunCall)
+				outputLine("ST", RR, stackPointer ,FP, "Getting the return out of r0 and putting it on the stack");
+
+
 			args = args.tail;
 		}
 
 		//get next function frame
-		System.out.println(tree.name);
 		Frame nextFrame = frames.get(tree.name);
-		int frameOffSet = stackPointer + nextFrame.params + 1;
+		int frameOffSet = f.locals + stackPointer + nextFrame.params;
+		System.out.println("next frame     " + tree.name);
+		System.out.println("next params    " + nextFrame.params);
+		System.out.println("current locals " + f.locals);
+		System.out.println("current stack  " + stackPointer);
+		System.out.println("offset to next frame " + frameOffSet);
+
 
 		//set the new FP
 		outputLine("LDA", FP, frameOffSet, FP);
