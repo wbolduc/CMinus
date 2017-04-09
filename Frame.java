@@ -80,6 +80,11 @@ public class Frame
 		stack = 0;
 	}
 
+	public void resetStack()
+	{
+		stack  = 0;
+	}
+
 	public void incrementStack()
 	{
 		stack++;
@@ -89,15 +94,27 @@ public class Frame
 		stack--;
 	}
 
+	public void incrementStack(int i)
+	{
+		stack += i;
+	}
+	public void decrementStack(int i)
+	{
+		stack -= i;;
+	}
+
 	public int getStackOffset()
 	{
-		//NOTE: always returns the first empty spot
-		return totalScope + stack + 1;
+		//NOTE: always returns the last spot with something in it
+		return totalScope + stack;
 	}
 
 	public int getFrameOffset(Frame f)
 	{
-		return totalScope + stack + f.params;
+		System.out.println(f.function.name);
+		System.out.println("totalScope: " + totalScope +" stack: "  + stack + " f.params: " + f.params);
+		System.out.println("frameOffSet: " + (totalScope + stack + 1));
+		return totalScope + stack + 1;
 	}
 
 	public int getVarOffset(Exp e)

@@ -4,6 +4,7 @@ int test(int a)
 	return 0;
 }
 */
+
 int foo(int a, int b, int c)
 {
 	int d;
@@ -18,6 +19,7 @@ void main(void)
 	int b;
 	int c;
 
+	a = 10;
 	c = 100;
 	b = a = 9000;
 	a = c;
@@ -35,17 +37,20 @@ void main(void)
 	b = b * b;
 	output(b);
 
-	a = 1;
-	b = 2;
-	c = 3;
-	output(foo(a, b, c));
+	a = 100;
+	b = 10;
+	c = 1;
+
+	a = foo(a, b, c);
+	b = c;
+	output(a);
 
 	a = 20;
 	b = 3;
 	c = a + (b * 2);
 	output(c);
-	/*
+
 	c = input();
 	output(c);
-	output(input());*/
+	output(input());
 }
