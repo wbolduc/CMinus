@@ -19,13 +19,46 @@ void main(void)
 	int b;
 	int c;
 
+
+	a = input();
+	b = input();
+	while (a >= 0)
+	{
+		if ( 0 == a-a/b*b)
+		{
+			output(a);
+		}
+		a = a - 1;
+	}
+
+/*
 	a = 3;
 
-	while ( a >= 0)
+	while ( a )
 	{
 		output(a);
 		a = a - 1;
 	}
+
+	b = 3;
+	c = 15;
+	if (b > c)
+	{
+		output(9191919);
+	}
+
+	a = a == 0;
+	output(a);
+	if (a)
+	{
+		a = input();
+	}
+	else
+	{
+		a = 222;
+	}
+
+	output(a);
 
 /*
 	output(a);

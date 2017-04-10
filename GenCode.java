@@ -363,18 +363,21 @@ public class GenCode {
 
 			//this puts the answer in the top of the stack
 			GenCode(tree.test, f);
-
-			int jumpLine = currLine++;
-
+			int ifJump = currLine++;
 			GenCode(tree.thenpart, f);
 
-			if(tree.elsepart != null)
+
+			if (tree.elsepart != null)
 			{
 				int elseJump = currLine++;
 				GenCode(tree.elsepart, f);
+				code += elseJump + ":  LDA " + PC + "," + (currLine - elseJump - 1) + "(" + PC + ")     skip else\n";
+				code += ifJump + ":  JEQ " + RR + "," + (elseJump - ifJump) + "(" + PC + ")       conditional jump\n";
 			}
-
-
+			else
+			{	//no else statement
+				code += ifJump + ":  JEQ " + RR + "," + (currLine - ifJump - 1) + "(" + PC + ")       conditional jump\n";
+			}
 
 			code += "*end if statement\n";
 	}
