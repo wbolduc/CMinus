@@ -162,7 +162,7 @@ public class GenCode {
 	static private void GenCode( FunCall tree, Frame f)
 	{
 		//push arguments onto the stack
-		System.out.println("funcall " + tree.name + " " + tree.pos);
+		System.out.println("\n-funcall " + tree.name + " " + tree.pos);
 		ExpList args = tree.argList;
 
 		code += "*Start loading parameters for call to " + tree.name + "\n";
@@ -178,7 +178,7 @@ public class GenCode {
 		//get next function frame
 		Frame nextFrame = frames.get(tree.name);
 		int frameOffSet = f.getFrameOffset(nextFrame);
-		System.out.println("next frame     " + tree.name);
+		System.out.println("___\nnext frame     " + tree.name);
 		System.out.println("next params    " + nextFrame.params);
 		System.out.println("current locals " + f.locals);
 		System.out.println("current stack  " + f.getStackOffset());
@@ -200,7 +200,7 @@ public class GenCode {
 		//if this function returns something, we must get it from RR and put it onto the stack
 		if (nextFrame.function.type != "void")
 		{
-				f.decrementStack(nextFrame.params);
+				f.decrementStack(nextFrame.params - 1);
 				outputLine("ST", RR, f.getStackOffset(), FP, "Putting return onto the stack");
 		}
 		code += "*Done func call to " + tree.name + "\n";
@@ -244,6 +244,26 @@ public class GenCode {
 		outputLine("LD", RR, f.getStackOffset(), FP, "loading the top of the stack to r0 stack="+f.getStackOffset());
 		outputLine("ST", RR, f.getVarOffset(tree.lhs), FP, "assigning it");
 	}
+
+/*	static private void valueMightBeAFunc( Exp call, Frame f)
+	{
+		//Since functions return to RR and do not leave anything on the stack it is
+		//important to make sure that if we need to get 2 things on a stack, that we
+		//do it manually if the lhs or rhs is a functions
+
+		//more of bandage fix than anything, surely there's a better way to reformat
+		//the programs stucture so that this function need not exist
+
+		GenCode(call, f);
+		if (call instanceof FunCall)
+		{
+			//manually push to stack
+			f.incrementStack();
+
+			outputLine("ST", RR, f.getStackOffset(), FP, "VMBAF Putting return onto the stack");
+		}
+
+	}*/
 
 	static private void GenCode( BinOp tree, Frame f)
 	{
@@ -417,8 +437,6 @@ public class GenCode {
 			return null;
 	}
 /*
-
-
     static private void GenCode( ArrDec tree, HashMap curScope)
     {
         Object inMap = curScope.get(tree.name);
@@ -437,19 +455,6 @@ public class GenCode {
             else
                 curScope.put(tree.name, tree);
         }
-    }
-
-    static private String objToType(Object obj)
-    {
-        if (obj instanceof VarDec)
-            return ((VarDec)obj).type;
-        else if (obj instanceof ArrDec)
-            return ((ArrDec)obj).type;
-        else if (obj instanceof IntVal)
-            return "int";
-        else
-            System.out.println("Oh Gosh");
-            return "kek";
     }
 
     static private String GenCode( ArrExp tree, HashMap curScope)
@@ -473,18 +478,5 @@ public class GenCode {
         }
 
         return def.type;
-    }
-
-    static private String GenCode( BinOp tree, HashMap curScope)
-    {
-        String lType = GenCode(tree.left, curScope);
-        String rType = GenCode(tree.right, curScope);
-
-        if (lType != "err" && rType != "err")
-            if (lType == rType)
-                return lType;
-            else
-                System.out.println("Error line " + tree.pos + ": Mismatching types on binary operator. Expected " + lType + " got " + rType);
-        return "err";
     }*/
 }

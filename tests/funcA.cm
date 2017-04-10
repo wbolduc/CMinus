@@ -19,6 +19,8 @@ void main(void)
 	int b;
 	int c;
 
+	output((input() + input()) - (input() + input()));
+
 
 	a = input();
 	b = input();
@@ -31,7 +33,7 @@ void main(void)
 		a = a - 1;
 	}
 
-/*
+
 	a = 3;
 
 	while ( a )
