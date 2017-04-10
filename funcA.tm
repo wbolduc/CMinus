@@ -31,160 +31,52 @@
 *stop assembling function foo
 *start assembling function main
 *3
-25:  LDC  0,1(0)
-26:  ST  0,4(5)       int 1 pushed to stack
-27:  LDC  0,0(0)
-28:  ST  0,5(5)       int 0 pushed to stack
-29:  LD  2,5(5)       Load left and right hand side from stack
-30:  LD  1,4(5)
-31:  SUB  0,1,2        Sub r1 from r2, store in r0. Used for comparison
-32:  JGT  0,1(7)
-33:  LDC  0,0(0)       comparison was false
-34:  LDA  7,1(7)
-35:  LDC  0,1(0)       comparison was true
-36:  ST  0,4(5)       Store result back onto stack
-37:  LD  0,4(5)       loading the top of the stack to r0 stack=4
-38:  ST  0,1(5)       assigning it
+25:  LDC  0,3(0)
+26:  ST  0,4(5)       int 3 pushed to stack
+27:  LD  0,4(5)       loading the top of the stack to r0 stack=4
+28:  ST  0,1(5)       assigning it
+*Start while
+29:  LD  0,1(5)
+30:  ST  0,4(5)       variable a pushed to stack
+31:  LDC  0,0(0)
+32:  ST  0,5(5)       int 0 pushed to stack
+33:  LD  2,5(5)       Load left and right hand side from stack
+34:  LD  1,4(5)
+35:  SUB  0,1,2        Sub r1 from r2, store in r0. Used for comparison
+36:  JGE  0,2(7)
+37:  LDC  0,0(0)       comparison was false
+38:  LDA  7,1(7)
+39:  LDC  0,1(0)       comparison was true
+40:  ST  0,4(5)       Store result back onto stack
 *Start loading parameters for call to output
-39:  LD  0,1(5)
-40:  ST  0,4(5)       variable a pushed to stack
+42:  LD  0,1(5)
+43:  ST  0,4(5)       variable a pushed to stack
 *current stack 4
 *Calling function
-41:  LDA  5,5(5)       Start call to output line: 23
-42:  ST  7,0(5)       Moving return PC to func being called
-43:  LDC  7,4(0)
-44:  LDA  5,-5(5)       End call to output line: 23
+44:  LDA  5,5(5)       Start call to output line: 26
+45:  ST  7,0(5)       Moving return PC to func being called
+46:  LDC  7,4(0)
+47:  LDA  5,-5(5)       End call to output line: 26
 *Done func call to output
 *3
-45:  LDC  0,1(0)
-46:  ST  0,4(5)       int 1 pushed to stack
-47:  LDC  0,0(0)
-48:  ST  0,5(5)       int 0 pushed to stack
-49:  LD  2,5(5)       Load left and right hand side from stack
-50:  LD  1,4(5)
-51:  SUB  0,1,2        Sub r1 from r2, store in r0. Used for comparison
-52:  JGE  0,1(7)
-53:  LDC  0,0(0)       comparison was false
-54:  LDA  7,1(7)
-55:  LDC  0,1(0)       comparison was true
-56:  ST  0,4(5)       Store result back onto stack
-57:  LD  0,4(5)       loading the top of the stack to r0 stack=4
-58:  ST  0,1(5)       assigning it
-*Start loading parameters for call to output
-59:  LD  0,1(5)
-60:  ST  0,4(5)       variable a pushed to stack
-*current stack 4
-*Calling function
-61:  LDA  5,5(5)       Start call to output line: 25
-62:  ST  7,0(5)       Moving return PC to func being called
-63:  LDC  7,4(0)
-64:  LDA  5,-5(5)       End call to output line: 25
-*Done func call to output
-*3
-65:  LDC  0,1(0)
-66:  ST  0,4(5)       int 1 pushed to stack
-67:  LDC  0,0(0)
-68:  ST  0,5(5)       int 0 pushed to stack
-69:  LD  2,5(5)       Load left and right hand side from stack
-70:  LD  1,4(5)
-71:  SUB  0,1,2        Sub r1 from r2, store in r0. Used for comparison
-72:  JLT  0,1(7)
-73:  LDC  0,0(0)       comparison was false
-74:  LDA  7,1(7)
-75:  LDC  0,1(0)       comparison was true
-76:  ST  0,4(5)       Store result back onto stack
-77:  LD  0,4(5)       loading the top of the stack to r0 stack=4
-78:  ST  0,1(5)       assigning it
-*Start loading parameters for call to output
-79:  LD  0,1(5)
-80:  ST  0,4(5)       variable a pushed to stack
-*current stack 4
-*Calling function
-81:  LDA  5,5(5)       Start call to output line: 27
-82:  ST  7,0(5)       Moving return PC to func being called
-83:  LDC  7,4(0)
-84:  LDA  5,-5(5)       End call to output line: 27
-*Done func call to output
-*3
-85:  LDC  0,1(0)
-86:  ST  0,4(5)       int 1 pushed to stack
-87:  LDC  0,0(0)
-88:  ST  0,5(5)       int 0 pushed to stack
-89:  LD  2,5(5)       Load left and right hand side from stack
-90:  LD  1,4(5)
-91:  SUB  0,1,2        Sub r1 from r2, store in r0. Used for comparison
-92:  JLE  0,1(7)
-93:  LDC  0,0(0)       comparison was false
-94:  LDA  7,1(7)
-95:  LDC  0,1(0)       comparison was true
-96:  ST  0,4(5)       Store result back onto stack
-97:  LD  0,4(5)       loading the top of the stack to r0 stack=4
-98:  ST  0,1(5)       assigning it
-*Start loading parameters for call to output
-99:  LD  0,1(5)
-100:  ST  0,4(5)       variable a pushed to stack
-*current stack 4
-*Calling function
-101:  LDA  5,5(5)       Start call to output line: 29
-102:  ST  7,0(5)       Moving return PC to func being called
-103:  LDC  7,4(0)
-104:  LDA  5,-5(5)       End call to output line: 29
-*Done func call to output
-*3
-105:  LDC  0,1(0)
-106:  ST  0,4(5)       int 1 pushed to stack
-107:  LDC  0,0(0)
-108:  ST  0,5(5)       int 0 pushed to stack
-109:  LD  2,5(5)       Load left and right hand side from stack
-110:  LD  1,4(5)
-111:  SUB  0,1,2        Sub r1 from r2, store in r0. Used for comparison
-112:  JEQ  0,1(7)
-113:  LDC  0,0(0)       comparison was false
-114:  LDA  7,1(7)
-115:  LDC  0,1(0)       comparison was true
-116:  ST  0,4(5)       Store result back onto stack
-117:  LD  0,4(5)       loading the top of the stack to r0 stack=4
-118:  ST  0,1(5)       assigning it
-*Start loading parameters for call to output
-119:  LD  0,1(5)
-120:  ST  0,4(5)       variable a pushed to stack
-*current stack 4
-*Calling function
-121:  LDA  5,5(5)       Start call to output line: 31
-122:  ST  7,0(5)       Moving return PC to func being called
-123:  LDC  7,4(0)
-124:  LDA  5,-5(5)       End call to output line: 31
-*Done func call to output
-*3
-125:  LDC  0,1(0)
-126:  ST  0,4(5)       int 1 pushed to stack
-127:  LDC  0,0(0)
-128:  ST  0,5(5)       int 0 pushed to stack
-129:  LD  2,5(5)       Load left and right hand side from stack
-130:  LD  1,4(5)
-131:  SUB  0,1,2        Sub r1 from r2, store in r0. Used for comparison
-132:  JNE  0,1(7)
-133:  LDC  0,0(0)       comparison was false
-134:  LDA  7,1(7)
-135:  LDC  0,1(0)       comparison was true
-136:  ST  0,4(5)       Store result back onto stack
-137:  LD  0,4(5)       loading the top of the stack to r0 stack=4
-138:  ST  0,1(5)       assigning it
-*Start loading parameters for call to output
-139:  LD  0,1(5)
-140:  ST  0,4(5)       variable a pushed to stack
-*current stack 4
-*Calling function
-141:  LDA  5,5(5)       Start call to output line: 33
-142:  ST  7,0(5)       Moving return PC to func being called
-143:  LDC  7,4(0)
-144:  LDA  5,-5(5)       End call to output line: 33
-*Done func call to output
-145:  LD  4,0(5)
-146:  LDA  7,1(4)       *return to caller main<<<<<
+48:  LD  0,1(5)
+49:  ST  0,4(5)       variable a pushed to stack
+50:  LDC  0,1(0)
+51:  ST  0,5(5)       int 1 pushed to stack
+52:  LD  2,5(5)       Load left and right hand side from stack
+53:  LD  1,4(5)
+54:  SUB  0,1,2
+55:  ST  0,4(5)       Store result back onto stack
+56:  LD  0,4(5)       loading the top of the stack to r0 stack=4
+57:  ST  0,1(5)       assigning it
+58:  LDA  7,-30(7)       Jump back to while
+41:  JEQ    0,17(7)    while jump
+*End while
+59:  LD  4,0(5)
+60:  LDA  7,1(4)       *return to caller main<<<<<
 *stop assembling function main
-0:  LDC  7,147(0) 	jump around functions
-147:  LDA  5,0(5)       initial FP for main
-148:  ST  7,0(5)       Store return for main caller
-149:  LDC  7,25(0)       move PC to main
-150:   HALT   0,0,0
+0:  LDC  7,61(0) 	jump around functions
+61:  LDA  5,0(5)       initial FP for main
+62:  ST  7,0(5)       Store return for main caller
+63:  LDC  7,25(0)       move PC to main
+64:   HALT   0,0,0

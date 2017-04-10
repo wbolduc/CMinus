@@ -309,22 +309,22 @@ public class GenCode {
 			switch (tree.op)
 			{
 				case RelOp.LT:
-					outputLine("JLT", RR, 1, PC);
+					outputLine("JLT", RR, 2, PC);
 					break;
 				case RelOp.LE:
-					outputLine("JLE", RR, 1, PC);
+					outputLine("JLE", RR, 2, PC);
 					break;
 				case RelOp.EQ:
-					outputLine("JEQ", RR, 1, PC);
+					outputLine("JEQ", RR, 2, PC);
 					break;
 				case RelOp.GE:
-					outputLine("JGE", RR, 1, PC);
+					outputLine("JGE", RR, 2, PC);
 					break;
 				case RelOp.GT:
-					outputLine("JGT", RR, 1, PC);
+					outputLine("JGT", RR, 2, PC);
 					break;
 				case RelOp.NE:
-					outputLine("JNE", RR, 1, PC);
+					outputLine("JNE", RR, 2, PC);
 					break;
 			}
 			outputLine("LDC", RR, 0, 0, "comparison was false");
@@ -334,13 +334,47 @@ public class GenCode {
 			outputLine("ST", RR, f.getStackOffset(), FP, "Store result back onto stack");
 	}
 
+	static private void GenCode( WhileExp tree, Frame f)
+	{
+			code += "*Start while\n";
+
+			//store where the test starts
+			int testStart = currLine;
+
+			//puts the result of the test on the stack
+			GenCode(tree.test, f);
+
+			//save a spot for the jump
+			int whileJump = currLine++;
+
+			GenCode(tree.statements, f);
+
+			outputLine("LDA", PC, -(currLine - testStart + 1), PC, "Jump back to while");
+
+			//put in the jump
+			code += whileJump + ":  JEQ    " + RR + "," + (currLine - whileJump - 1) + "(" + PC + ")    while jump\n";
+			code += "*End while\n";
+	}
+
+
 	static private void GenCode( IfExp tree, Frame f )
 	{
 			code += "*begin if statement\n";
 
-			//this puts the answer in the top of the stack and in r0
+			//this puts the answer in the top of the stack
 			GenCode(tree.test, f);
-			
+
+			int jumpLine = currLine++;
+
+			GenCode(tree.thenpart, f);
+
+			if(tree.elsepart != null)
+			{
+				int elseJump = currLine++;
+				GenCode(tree.elsepart, f);
+			}
+
+
 
 			code += "*end if statement\n";
 	}
@@ -369,12 +403,12 @@ public class GenCode {
 			GenCode( (IfExp)tree, f );
 		else if( tree instanceof RelOp )
 			GenCode( (RelOp)tree, f );
+		else if( tree instanceof WhileExp )
+			GenCode( (WhileExp)tree, f );
 		/*else if( tree instanceof ArrExp )
 			return GenCode( (ArrExp)tree, curScope );
 		else if( tree instanceof ArrDec )
-			GenCode( (ArrDec)tree, curScope);
-		else if( tree instanceof WhileExp )
-			GenCode( (WhileExp)tree, curScope );*/
+			GenCode( (ArrDec)tree, curScope);*/
 		else
 			System.out.println( "You didn't define this you dingus: " + tree.toString() +tree.pos  );
 			return null;
@@ -401,14 +435,6 @@ public class GenCode {
                 curScope.put(tree.name, tree);
         }
     }
-
-
-    static private void GenCode( WhileExp tree, HashMap curScope)
-    {
-        GenCode(tree.test, curScope);
-        GenCode(tree.statements, curScope);
-    }
-
 
     static private String objToType(Object obj)
     {

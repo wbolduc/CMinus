@@ -19,19 +19,13 @@ void main(void)
 	int b;
 	int c;
 
-	a = 1 > 0;
-	output(a);
-	a = 1 >= 0;
-	output(a);
-	a = 1 < 0;
-	output(a);
-	a = 1 <= 0;
-	output(a);
-	a = 1 == 0;
-	output(a);
-	a = 1 != 0;
-	output(a);
+	a = 3;
 
+	while ( a >= 0)
+	{
+		output(a);
+		a = a - 1;
+	}
 
 /*
 	output(a);
