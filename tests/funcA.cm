@@ -19,6 +19,24 @@ void main(void)
 	int b;
 	int c;
 
+	a = 1 > 0;
+	output(a);
+	a = 1 >= 0;
+	output(a);
+	a = 1 < 0;
+	output(a);
+	a = 1 <= 0;
+	output(a);
+	a = 1 == 0;
+	output(a);
+	a = 1 != 0;
+	output(a);
+
+
+/*
+	output(a);
+	output(b);
+	/*
 	a = 10;
 	c = 100;
 	b = a = 9000;
@@ -53,4 +71,8 @@ void main(void)
 	c = input();
 	output(c);
 	output(input());
+
+	output(input() + 1);
+
+	*/
 }

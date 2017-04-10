@@ -273,6 +273,79 @@ public class GenCode {
 			outputLine("ST", 0, f.getStackOffset(), FP, "Store result back onto stack");
 	}
 
+	static private void GenCode( ComStmt tree, Frame f)
+	{
+			f.addScope();
+
+			//make a new scope
+			ExpList locals = tree.locals;
+			while( locals != null)
+			{
+					f.addLocal(locals.head);
+					locals = locals.tail;
+			}
+
+			//generate the inside code
+			GenCode(tree.statements, f);
+
+			//remove the scope
+			f.popScope();
+	}
+
+	static private void GenCode( RelOp tree, Frame f )
+	{
+			GenCode(tree.left, f);
+			GenCode(tree.right, f);
+
+			//NOTE: LEFT SIDE MINUS RIGHT SIDE
+
+			//similar to binary operators
+			outputLine("LD", 2, f.getStackOffset(), FP, "Load left and right hand side from stack");
+			f.decrementStack();
+			outputLine("LD", 1, f.getStackOffset(), FP);
+
+			outputLine("SUB", RR,1,2, "Sub r1 from r2, store in r0. Used for comparison");
+
+			switch (tree.op)
+			{
+				case RelOp.LT:
+					outputLine("JLT", RR, 1, PC);
+					break;
+				case RelOp.LE:
+					outputLine("JLE", RR, 1, PC);
+					break;
+				case RelOp.EQ:
+					outputLine("JEQ", RR, 1, PC);
+					break;
+				case RelOp.GE:
+					outputLine("JGE", RR, 1, PC);
+					break;
+				case RelOp.GT:
+					outputLine("JGT", RR, 1, PC);
+					break;
+				case RelOp.NE:
+					outputLine("JNE", RR, 1, PC);
+					break;
+			}
+			outputLine("LDC", RR, 0, 0, "comparison was false");
+			outputLine("LDA", PC, 1, PC);
+			outputLine("LDC", RR, 1, 0, "comparison was true");
+
+			outputLine("ST", RR, f.getStackOffset(), FP, "Store result back onto stack");
+	}
+
+	static private void GenCode( IfExp tree, Frame f )
+	{
+			code += "*begin if statement\n";
+
+			//this puts the answer in the top of the stack and in r0
+			GenCode(tree.test, f);
+			
+
+			code += "*end if statement\n";
+	}
+
+
 	static private String GenCode( Exp tree, Frame f ) {
 		if( tree instanceof FunDec )
 			GenCode( (FunDec)tree );
@@ -289,24 +362,22 @@ public class GenCode {
 		else if( tree instanceof AssignExp )
 			GenCode( (AssignExp)tree, f );
 		else if( tree instanceof BinOp )
-			GenCode( (BinOp)tree, f );/*
+			GenCode( (BinOp)tree, f );
+		else if( tree instanceof ComStmt )
+			GenCode( (ComStmt)tree, f );
 		else if( tree instanceof IfExp )
-			GenCode( (IfExp)tree, curScope );
+			GenCode( (IfExp)tree, f );
 		else if( tree instanceof RelOp )
-			return GenCode( (RelOp)tree, curScope );*/
+			GenCode( (RelOp)tree, f );
 		/*else if( tree instanceof ArrExp )
 			return GenCode( (ArrExp)tree, curScope );
 		else if( tree instanceof ArrDec )
 			GenCode( (ArrDec)tree, curScope);
-		else if( tree instanceof ComStmt )
-			GenCode( (ComStmt)tree, f );
 		else if( tree instanceof WhileExp )
 			GenCode( (WhileExp)tree, curScope );*/
-		else if( tree == null)
-			return null;
 		else
 			System.out.println( "You didn't define this you dingus: " + tree.toString() +tree.pos  );
-		return null;
+			return null;
 	}
 /*
 
@@ -331,32 +402,6 @@ public class GenCode {
         }
     }
 
-    static private void GenCode( ComStmt tree, HashMap curScope)
-    {
-        curScope = new HashMap();
-        scopes.add(curScope);
-
-        enterScopeMessege("ComStmt");
-
-        GenCode(tree.locals, curScope);
-        GenCode(tree.statements, curScope);
-
-        leaveScopeMessege("ComStmt");
-
-        scopes.remove(scopes.size() - 1);
-    }
-
-    static private void GenCode( IfExp tree, HashMap curScope)
-    {
-        GenCode(tree.test, curScope);
-        GenCode(tree.thenpart, curScope);
-
-        //NewScope
-        if (tree.elsepart != null)
-        {
-            GenCode(tree.elsepart, curScope);
-        }
-    }
 
     static private void GenCode( WhileExp tree, HashMap curScope)
     {
@@ -399,19 +444,6 @@ public class GenCode {
         }
 
         return def.type;
-    }
-
-    static private String GenCode( RelOp tree, HashMap curScope)
-    {
-        String lType = GenCode(tree.left, curScope);
-        String rType = GenCode(tree.right, curScope);
-
-        if (lType != "err" && rType != "err")
-            if (lType == rType)
-                return lType;
-            else
-                System.out.println("Error line " + tree.pos + ": Mismatching types on comparison. Expected " + lType + " got " + rType);
-        return "err";
     }
 
     static private String GenCode( BinOp tree, HashMap curScope)
