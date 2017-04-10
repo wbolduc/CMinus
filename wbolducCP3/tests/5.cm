@@ -1,0 +1,61 @@
+int a;
+int b;
+
+int dup(void)
+{
+	int array[100];
+	if(a == 0)
+	{
+		void dumb;
+		a = dumb;
+		a = a;
+		b;
+	}
+}
+
+void fine(int i[], int b, int c)
+{
+	int array[100];
+	void b;
+	int i;
+
+	i = 0 - 1;
+	i = array[1];
+
+	if( b > 0)
+		while(a == 2)
+			dup();
+	i = dup();
+	b = dup();
+	a = b = i = 1;
+	b = array[b];
+	return 1;
+}
+
+void grep(void)
+{
+	int a;
+	int b;
+	int c;
+	void ded;
+
+	ded = (a > 0);
+
+	ded = c = b = a = 1;
+}
+
+
+void dup(void)
+{
+	int x;
+	void y;
+	int z;
+	int x;
+	input();
+	input(123);
+	output();
+	output(123);
+	dup();
+	fine(x, y, z);
+	return 0;
+}

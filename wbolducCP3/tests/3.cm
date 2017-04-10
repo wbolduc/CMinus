@@ -1,0 +1,15 @@
+/*3.cm operator matching*/
+
+void doMath(int x, int y)
+{
+    int total;
+    void nothing;
+
+    total = x + y;
+    total = x + nothing;
+    nothing = 4 - total;
+    total = x - y / nothing * 4 + total;
+
+    nothing = nothing * nothing * nothing + nothing;
+
+}

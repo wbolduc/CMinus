@@ -1,0 +1,107 @@
+/*
+int test(int a)
+{
+	return 0;
+}
+*/
+
+int foo(int a, int b, int c)
+{
+	int d;
+	int e;
+	int f;
+	return a + b + c;
+}
+
+void main(void)
+{
+	int a;
+	int b;
+	int c;
+
+	output((input() + input()) - (input() + input()));
+
+
+	a = input();
+	b = input();
+	while (a >= 0)
+	{
+		if ( 0 == a-a/b*b)
+		{
+			output(a);
+		}
+		a = a - 1;
+	}
+
+
+	a = 3;
+
+	while ( a )
+	{
+		output(a);
+		a = a - 1;
+	}
+
+	b = 3;
+	c = 15;
+	if (b > c)
+	{
+		output(9191919);
+	}
+
+	a = a == 0;
+	output(a);
+	if (a)
+	{
+		a = input();
+	}
+	else
+	{
+		a = 222;
+	}
+
+	output(a);
+
+/*
+	output(a);
+	output(b);
+	/*
+	a = 10;
+	c = 100;
+	b = a = 9000;
+	a = c;
+	output(1010101);
+	output(a);
+	output(b);
+	output(c);
+
+	b = b + 1;
+	output(b);
+	b = b - 1;
+	output(b);
+	b = b / c;
+	output(b);
+	b = b * b;
+	output(b);
+
+	a = 100;
+	b = 10;
+	c = 1;
+
+	a = foo(a, b, c);
+	b = c;
+	output(a);
+
+	a = 20;
+	b = 3;
+	c = a + (b * 2);
+	output(c);
+
+	c = input();
+	output(c);
+	output(input());
+
+	output(input() + 1);
+
+	*/
+}
